@@ -2,7 +2,7 @@
 const fetch = require('node-fetch');
 
 module.exports = {
-  command: ['gsmarena'],
+  command: ['gsmarena','phone'],
   operate: async ({ Cypher, m, reply, text }) => {
     if (!text) return reply("Please provide a phone model name.");
 
@@ -16,8 +16,8 @@ module.exports = {
       let specs = phone.specifications;
 
       let phoneMessage = `
-📱 *Phone Specifications* 📱
-===========================
+📱 *Casper Phone Specifications* 📱
+==================================
 *Name*: ${phone.name}
 *URL*: [Click here](${phone.url})
 *Price*: ${specs.price || 'N/A'}
@@ -79,6 +79,7 @@ module.exports = {
 - **Models**: ${specs.models || 'N/A'}
 
 For more details, visit: [GSMArena](${phone.url})
+> POWERED BY 𝖢𝖠𝖲𝖯𝖤𝖱 𝖳𝖤𝖢𝖧 🤓
       `;
 
       // Send the phone specifications with an image
