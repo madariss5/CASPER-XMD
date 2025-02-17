@@ -2,7 +2,7 @@
 const { happymod } = require("../../lib/scraper2"); 
 
 module.exports = {
-  command: ['happymod'],
+  command: ['happymod','mod','apkmod'],
   operate: async ({ m, text, prefix, command, reply }) => {
     if (!text) return reply(`*Example: ${prefix + command} Subway surfer mod*`);
 
