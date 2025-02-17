@@ -13,7 +13,7 @@ module.exports = {
       );
 
       let textw = "";
-      textw += `*🗺️Weather of ${city}*\n\n`;
+      textw += `*🗺️CASPER WEATHER FOCUS of ${city}*\n\n`;
       textw += `*Weather:-* ${wdata.data.weather[0].main}\n`;
       textw += `*Description:-* ${wdata.data.weather[0].description}\n`;
       textw += `*Avg Temp:-* ${wdata.data.main.temp}\n`;
