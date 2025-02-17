@@ -8,7 +8,7 @@ module.exports = {
   operate: async ({ m, Cypher, reply }) => {
     try {
       const me = m.sender;
-      const response = await axios.get('https://api.github.com/repos/Dark-Xploit/CypherX');
+      const response = await axios.get('https://github.com/Casper-Tech-ke/CASPER-XMD');
       if (response.status === 200) {
         const repoData = response.data;
         const repos = `
@@ -22,7 +22,7 @@ module.exports = {
 > ${repoData.forks_count}
 
 *GITHUB LINK:* 
-https://github.com/Dark-Xploit/CypherX
+https://github.com/Casper-Tech-ke/CASPER-XMD
 
 @${me.split("@")[0]}👋, Don't forget to star and fork my repository😊
 
@@ -33,7 +33,7 @@ https://github.com/Dark-Xploit/CypherX
           forwardingScore: 9999, 
           isForwarded: true, 
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363345633217147@newsletter',
+            newsletterJid: '120363375953549654@newsletter',
             serverMessageId: 20,
             newsletterName: global.botname,
           },
