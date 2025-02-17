@@ -25,7 +25,7 @@ module.exports = {
         
         const { title, artists, album, genres, release_date } = res.metadata.music[0];
         const txt = `
-┏▣ ◊ 𝗫𝗣𝗟𝗢𝗔𝗗𝗘𝗥 𝗕𝗢𝗧 ◊
+┏▣ 🄲🄰🅂🄿🄴🅁-🅇🄼🄳
 │• TITLE: ${title}
 │• ARTIST: ${artists !== undefined ? artists.map(v => v.name).join(', ') : 'NOT FOUND'}
 │• ALBUM: ${album.name || 'NOT FOUND'}
