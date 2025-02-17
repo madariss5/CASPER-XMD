@@ -1,6 +1,6 @@
 {
   "name": "CASPER-XMD",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "description": "The best Whatsapp bot",
   "main": "index.js",
   "engines": {
