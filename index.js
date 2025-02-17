@@ -5,65 +5,91 @@
  * @author Casper-Tech-ke
  * @created 2025-02-17 11:58:41
  */
-
-"use strict";
-const { color } = require('./lib/color');
-const { say } = require('cfonts');
 const { spawn } = require('child_process');
 const path = require('path');
-const CFonts = require('cfonts');
-const os = require('os');
+const fs = require('fs');
+const moment = require('moment-timezone');
 
-// Banner
-function banner() {
-    say('CASPER-XMD', {
-        font: 'chrome',
-        align: 'center',
-        colors: ['system']
-    });
-    say('WhatsApp Bot by Casper-Tech-ke', {
-        font: 'console',
-        align: 'center',
-        colors: ['system']
-    });
+const MEMORY_LIMIT = 250;
+const RESTART_DELAY = 3000;
+
+const TIMEZONE = global.timezones || "Africa/Nairobi";
+
+function getLogFileName() {
+  const today = moment(Date.now()).tz(TIMEZONE);
+  return `${today.format('YYYY-MM-DD')}.log`;
 }
 
-// Start Function
+function createTmpFolder() {
+const folderName = "tmp";
+const folderPath = path.join(__dirname, folderName);
+
+if (!fs.existsSync(folderPath)) {
+fs.mkdirSync(folderPath);
+   }
+ }
+ 
+createTmpFolder();
+
+function logMessage(message) {
+  const timestamp = moment(Date.now()).tz(TIMEZONE).locale('en').format('HH:mm z');
+  console.log(`[CYPHER-X] ${message}`);
+  fs.appendFileSync(path.join(__dirname, 'tmp', getLogFileName()), `[${timestamp}] ${message}\n`);
+}
+
 function start() {
-    banner();
-    let args = [path.join(__dirname, 'core.js'), ...process.argv.slice(2)];
-    console.log(color('[SYSTEM]', 'yellow'), color('Starting...', 'yellow'));
-    
-    let p = spawn(process.argv[0], args, {
-        stdio: ['inherit', 'inherit', 'inherit', 'ipc']
-    })
-    .on('message', data => {
-        if (data == 'reset') {
-            console.log(color('[SYSTEM]', 'red'), color('Restarting...', 'red'));
-            p.kill();
-            start();
-            delete p;
-        }
-    })
-    .on('exit', code => {
-        console.log(color('[SYSTEM]', 'red'), color('Exited with code:', 'red'), color(code, 'red'));
-        if (code == 1) start();
-    });
-}
+  process.env.NODE_OPTIONS = '--no-deprecation';
 
-// System Information
-const startTime = Date.now();
-console.log(color('[SYSTEM]', 'yellow'), color('System Information:', 'yellow'));
-console.log(color('[SYSTEM]', 'yellow'), color('OS:', 'white'), color(os.type(), 'green'));
-console.log(color('[SYSTEM]', 'yellow'), color('Node Version:', 'white'), color(process.version, 'green'));
-console.log(color('[SYSTEM]', 'yellow'), color('Time:', 'white'), color(new Date().toLocaleString(), 'green'));
+  const args = [path.join(__dirname, 'core.js'), ...process.argv.slice(2)];
+  
+  logMessage('Starting...');
+
+  const logFilePath = path.join(__dirname, 'tmp', getLogFileName());
+  const errorLogStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+
+  let p = spawn(process.argv[0], args, {
+    stdio: ['inherit', 'inherit', 'pipe', 'ipc'],
+  });
+
+  p.stderr.on('data', (data) => {
+    const errorMsg = `[${moment(Date.now()).tz(TIMEZONE).locale('en').format('HH:mm z')}] ${data.toString()}`;
+    console.error(errorMsg);
+    errorLogStream.write(errorMsg);
+  });
+
+  const memoryCheckInterval = setInterval(() => {
+    try {
+      const memoryUsage = process.memoryUsage().rss / 1024 / 1024;
+      if (memoryUsage > MEMORY_LIMIT) {
+        logMessage(`Memory usage exceeded ${MEMORY_LIMIT}MB. Restarting...`);
+        p.kill();
+      }
+    } catch (error) {
+      logMessage(`Memory check failed: ${error.message}`);
+    }
+  }, 60000);
+
+  p.on('exit', (code) => {
+    clearInterval(memoryCheckInterval);
+    logMessage(`Exited with code: ${code}`);
+
+    if (code === 0 || code === 1 || code === 401) {
+      setTimeout(start, RESTART_DELAY);
+    }
+  });
+
+  const handleShutdown = (signal) => {
+    logMessage(`Shutting down CypherX due to ${signal}...`);
+    p.kill();
+    errorLogStream.end();
+    process.exit(0);
+  };
+
+  process.removeAllListeners('SIGINT');
+  process.removeAllListeners('SIGTERM');
+
+  process.on('SIGINT', handleShutdown);
+  process.on('SIGTERM', handleShutdown);
+}
 
 start();
-
-process.on('unhandledRejection', (reason) => {
-    console.error('Unhandled Promise Rejection:', reason);
-});
-
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-});
