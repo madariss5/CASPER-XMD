@@ -15,23 +15,23 @@ if (fs.existsSync('.env')) require('dotenv').config()
 // Bot Configuration
 global.SESSION_ID = process.env.SESSION_ID || ''
 global.botname = process.env.BOT_NAME || 'CASPER-XMD'
-global.ownernumber = process.env.OWNER_NUMBER || 'YOUR_NUMBER'
-global.sudo = process.env.SUDO ? process.env.SUDO.split(',') : []
-global.ownername = process.env.OWNER_NAME || 'Casper-Tech-ke'
+global.ownernumber = process.env.OWNER_NUMBER || '254732982940'
+global.sudo = process.env.SUDO ? process.env.SUDO.split(',') : ['254732982940']
+global.ownername = process.env.OWNER_NAME || 'Casper-Tech'
 global.packname = process.env.STICKER_PACK_NAME || 'CASPER'
-global.author = process.env.STICKER_AUTHOR_NAME || 'XMD'
+global.author = process.env.STICKER_AUTHOR_NAME || 'Traby-qriz'
 global.prefixz = process.env.PREFIX || '.'
 
 // Bot Features
 global.mode = process.env.MODE || 'public'
-global.statusemoji = process.env.STATUS_EMOJI || '💙'
+global.statusemoji = process.env.STATUS_EMOJI || '🩷'
 global.autoviewstatus = process.env.AUTO_STATUS_VIEW || 'true'
 global.autoreactstatus = process.env.AUTO_STATUS_REACT || 'false'
 global.alwaysonline = process.env.ALWAYS_ONLINE || 'true'
-global.chatbot = process.env.CHATBOT || 'false'
+global.chatbot = process.env.CHATBOT || 'true'
 global.antidelete = process.env.ANTIDELETE || 'private'
 global.anticall = process.env.ANTI_CALL || 'false'
-global.welcome = process.env.WELCOME_MSG || 'false'
+global.welcome = process.env.WELCOME_MSG || 'trur'
 global.autoread = process.env.AUTO_READ || 'false'
 global.menustyle = process.env.MENU_STYLE || '2'
 
@@ -42,7 +42,7 @@ global.instagram = 'https://instagram.com/your-instagram'
 
 // System Messages
 global.mess = {
-    success: '_Done!_',
+    success: '_Done 😄!_',
     admin: '_This feature is only for group admins!_',
     botAdmin: '_Bot must be admin first!_',
     owner: '_This feature is only for the bot owner!_',
