@@ -10,7 +10,7 @@ module.exports = {
       let response = await axios.get(`http://www.omdbapi.com/?apikey=742b2d09&t=${text}&plot=full`);
       let movieData = response.data;
 
-      let imdbText = `🎬 *IMDB SEARCH* 🎬\n\n`;
+      let imdbText = `🎬 *CASPER CYBER SITE* 🎬\n\n`;
       imdbText += `*Title:* ${movieData.Title}\n`;
       imdbText += `*Year:* ${movieData.Year}\n`;
       imdbText += `*Rated:* ${movieData.Rated}\n`;
