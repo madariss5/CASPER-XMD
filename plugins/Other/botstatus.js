@@ -60,13 +60,13 @@ module.exports = {
     const latency = endTime - startTime;
 
     const { download, upload } = await checkBandwidth();
-    const response = ` *PING* 
+    const response = ` 𝐏𝐈𝐍𝐆 
 > ${latency.toFixed(2)} ms 
 
- *RUNTIME*
+ 𝐑𝐔𝐍𝐈𝐍𝐆𝐓𝐈𝐌𝐑
 > ${runtime(process.uptime())} 
 
- *SERVER* 
+ 𝐒𝐄𝐑𝐕𝐄𝐑
  
  RAM:
 > ${formatSize(usedRam)} (${usedRamPercent.toFixed(2)}%) / ${formatSize(totalRam)} 
