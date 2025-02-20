@@ -1,108 +1,67 @@
-/**
- * XPLOADER BOT - Advanced WhatsApp Bot
- * Author: Casper-Tech-ke
- * Version: 2.0.0
- * Timestamp: 2025-02-18 06:32:46
- */
-
-// Baileys imports
+ 
+require('./settings')
 const {
-    BufferJSON,
-    WA_DEFAULT_EPHEMERAL,
-    generateWAMessageFromContent,
-    proto,
-    useMultiFileAuthState,
-    makeWASocket,
-    downloadContentFromMessage,
-    generateWAMessageContent,
-    generateWAMessage,
-    prepareWAMessageMedia,
-    areJidsSameUser,
-    getContentType
-} = require('@whiskeysockets/baileys');
-
-// System dependencies
-const {
-    exec,
-    spawn,
-    execSync
-} = require('child_process');
-const util = require('util');
-const fetch = require('node-fetch');
-const path = require('path');
+  BufferJSON,
+  WA_DEFAULT_EPHEMERAL,
+  generateWAMessageFromContent,
+  proto,
+  useMultiFileAuthState,
+  makeWASocket,
+  downloadContentFromMessage,
+  generateWAMessageContent,
+  generateWAMessage,
+  prepareWAMessageMedia,
+  areJidsSameUser,
+  getContentType,
+} = require("@whiskeysockets/baileys");
+const { exec, spawn, execSync } = require("child_process")
+const util = require('util')
+const fetch = require('node-fetch')
+const path = require('path')
 const fs = require('fs');
-const axios = require('axios');
-const chalk = require('chalk');
-const googleTTS = require('google-tts-api');
-const acrcloud = require('acrcloud');
+const axios = require('axios')
+const chalk = require('chalk')
+const googleTTS = require("google-tts-api");
+const acrcloud = require ('acrcloud');
 const FormData = require('form-data');
-const cheerio = require('cheerio');
-const { randomBytes } = require('crypto');
-const { performance } = require('perf_hooks');
-const moment = require('moment-timezone');
-const lolcatjs = require('lolcatjs');
+const cheerio = require('cheerio')
+const { randomBytes } = require('crypto')
+const { performance } = require("perf_hooks");
+const process = require('process');
+const moment = require("moment-timezone")
+const lolcatjs = require('lolcatjs')
 const os = require('os');
+const scp2 = require("./lib/scraper2");
 const checkDiskSpace = require('check-disk-space').default;
-const speed = require('performance-now');
-const yts = require('yt-search');
-const { translate } = require('@vitalets/google-translate-api');
-const jsobfus = require('javascript-obfuscator');
-const { toAudio, toPTT, toVideo, ffmpeg, addExifAvatar } = require('./lib/converter');
-const { uploadMedia, handleMediaUpload } = require('./lib/catbox');
-const { addExif } = require('./lib/exif');
-
-// Configuration and Constants
-const config = {
-    VERSION: '1.0.0',
-    OWNER_NUMBER: '254732982940',
-    BOT_NAME: 'CASPER-XMD🤓 ',
-    PREFIX: '/',
-    API_KEY: '882a7ef12dc0dc408f70a2f3f4724340',
-    TIMEZONE: 'Africa/Nairobi',
-    HEROKU_API_KEY: process.env.HEROKU_API_KEY || '',
-    HEROKU_APP_NAME: process.env.HEROKU_APP_NAME || '',
-    SESSION_DIR: './session',
-    DATABASE_PATH: './src/database.json',
-    LOGS_DIR: './logs',
-    MEDIA_DIR: './Media/Images',
-    TEMP_DIR: './temp'
-};
-
-// Global variables
-global.api = {
-    lolhuman: 'https://api.lolhuman.xyz/api',
-    zenz: 'https://zenzapis.xyz'
-};
-
-// Load media assets
-const MEDIA = {
-    BOT_PIC1: fs.readFileSync('./Media/Images/Xploader1.jpg'),
-    BOT_PIC2: fs.readFileSync('./Media/Images/Xploader2.jpg'),
-    BOT_PIC3: fs.readFileSync('./Media/Images/Xploader3.jpg'),
-    BOT_PIC4: fs.readFileSync('./Media/Images/Xploader4.jpg'),
-    BOT_PIC5: fs.readFileSync('./Media/Images/Xploader5.jpg')
-};
-
-// Initialize ACRCloud
-const acr = new acrcloud({
-    host: 'identify-eu-west-1.acrcloud.com',
-    access_key: config.API_KEY,
-    access_secret: 'qVvKAxknV7bUdtxjXS22b5ssvWYxpnVndhy2isXP'
-});
-
-// Special characters
+const speed = require('performance-now')
+const yts = require("yt-search")
+const jsobfus = require("javascript-obfuscator");
+const { translate } = require("@vitalets/google-translate-api");
 const more = String.fromCharCode(8206);
 const readmore = more.repeat(4001);
-// Import utility functions
+const timestampp = speed();
+const latensi = speed() - timestampp
+const { bytesToSize, checkBandwidth, formatSize, jsonformat, nganuin, shorturl, color } = require('./lib/function');
+const { addExif } = require('./lib/exif');
+const devTylor = '254732982940';
+const mainOwner = "254732982940@s.whatsapp.net";
+const {
+  toAudio,
+  toPTT,
+  toVideo,
+  ffmpeg,
+  addExifAvatar,
+} = require("./lib/converter");
 const {
     smsg,
     formatDate,
     getTime,
     getGroupAdmins,
     formatp,
+    await,
     sleep,
     isUrl,
-    runtime,
+    runtime,   
     clockString,
     msToDate,
     sort,
@@ -119,1326 +78,1417 @@ const {
     getRandom,
     fetchBuffer,
     buffergif,
-    GIFBufferToVideoBuffer
-} = require('./lib/myfunc');
+    GIFBufferToVideoBuffer,
+    totalcase
+} = require('./lib/myfunc')
 
-// Database Manager Class
-class DatabaseManager {
-    constructor() {
-        this.path = config.DATABASE_PATH;
-        this.data = {
-            users: new Map(),
-            groups: new Map(),
-            settings: new Map(),
-            stats: new Map(),
-            cooldowns: new Map(),
-            blacklist: new Set(),
-            premium: new Set()
-        };
-        this.autoSaveInterval = 300000; // 5 minutes
-        this.init();
+//error handling
+const errorLog = new Map();
+const ERROR_EXPIRY_TIME = 60000; // 60 seconds
+
+const recordError = (error) => {
+  const now = Date.now();
+  errorLog.set(error, now);
+  setTimeout(() => errorLog.delete(error), ERROR_EXPIRY_TIME);
+};
+
+const shouldLogError = (error) => {
+  const now = Date.now();
+  if (errorLog.has(error)) {
+    const lastLoggedTime = errorLog.get(error);
+    if (now - lastLoggedTime < ERROR_EXPIRY_TIME) {
+      return false;
+    }
+  }
+  return true;
+};
+
+//Images
+const tylorkid1 = fs.readFileSync("./Media/Images/Xploader1.jpg");
+const tylorkid2 = fs.readFileSync("./Media/Images/Xploader2.jpg");
+const tylorkid3 = fs.readFileSync("./Media/Images/Xploader3.jpg");
+const tylorkid4 = fs.readFileSync("./Media/Images/Xploader4.jpg");
+const tylorkid5 = fs.readFileSync("./Media/Images/Xploader5.jpg");
+
+//Version
+const versions = require("./package.json").version;
+const dlkey = 'lol';
+
+//badwords
+const bad = JSON.parse(fs.readFileSync("./src/badwords.json")); 
+
+//Shazam
+const acr = new acrcloud({
+    host: 'identify-eu-west-1.acrcloud.com',
+    access_key: '882a7ef12dc0dc408lolf70a2f3f4724340',
+    access_secret: 'qVvKAxknV7bUloldtxjXS22b5ssvWYxpnVndhy2isXP'
+});
+
+//Catbox upload
+const { uploadMedia, handleMediaUpload } = require('./lib/catbox'); 
+
+//database 
+global.db.data = JSON.parse(fs.readFileSync("./src/database.json"));
+
+if (global.db.data) {
+  global.db.data = {
+    chats: {},
+    settings: {},
+    blacklist: { blacklisted_numbers: [] }, 
+    ...(global.db.data || {}),
+  };
+}
+
+module.exports = Cypher = async (Cypher, m, chatUpdate, store) => {
+try {
+   const { type, quotedMsg, mentioned, now, fromMe } = m;
+    var body =
+      m.mtype === "conversation"
+        ? m.message.conversation
+        : m.mtype == "imageMessage"
+        ? m.message.imageMessage.caption
+        : m.mtype == "videoMessage"
+        ? m.message.videoMessage.caption
+        : m.mtype == "extendedTextMessage"
+        ? m.message.extendedTextMessage.text
+        : m.mtype == "buttonsResponseMessage"
+        ? m.message.buttonsResponseMessage.selectedButtonId
+        : m.mtype == "listResponseMessage"
+        ? m.message.listResponseMessage.singleSelectReply.selectedRowId
+        : m.mtype == "templateButtonReplyMessage"
+        ? m.message.templateButtonReplyMessage.selectedId
+        : m.mtype === "messageContextInfo"
+        ? m.message.buttonsResponseMessage?.selectedButtonId ||
+          m.message.listResponseMessage?.singleSelectReply.selectedRowId ||
+          m.text
+        : "";
+    var budy = typeof m.text == "string" ? m.text : "";
+    //prefix 1
+var prefix = [".", "/"]
+  ? /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(body)
+    ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0]
+    : ""
+  : prefixz;
+const isCmd = body.startsWith(prefix);
+const isCmd2 = body.startsWith(prefix);
+
+// Prefix 2
+const pric = /^#.¦|\\^/.test(body) ? body.match(/^#.¦|\\^/gi) : prefixz;
+const XpBotbody = body.startsWith(pric);
+
+const command = XpBotbody
+  ? body.replace(pric, "").trim().split(/\s+/).join("").toLowerCase() 
+  : "";
+      
+const args = body.trim().split(/ +/).slice(1);
+const full_args = body.replace(command, '').slice(1).trim();
+const pushname = m.pushName || "CASPER TECH";
+const botNumber = await Cypher.decodeJid(Cypher.user.id);
+const sender = m.sender
+const senderNumber = sender.split('@')[0]
+const isCreator = [botNumber, devTylor, global.ownernumber, ...global.sudo]
+      .map((v) => v.replace(/[^0-9]/g, "") + "@s.whatsapp.net")
+      .includes(m.sender);
+const itsMe = m.sender == botNumber ? true : false;
+const text = q = args.join(" ");
+const from = m.key.remoteJid;
+const fatkuns = m.quoted || m;
+const quoted =
+  fatkuns && fatkuns.mtype === "buttonsMessage" && Object.keys(fatkuns).length > 1
+    ? fatkuns[Object.keys(fatkuns)[1]]
+    : fatkuns && fatkuns.mtype === "templateMessage" && fatkuns.hydratedTemplate && Object.keys(fatkuns.hydratedTemplate).length > 1
+    ? fatkuns.hydratedTemplate[Object.keys(fatkuns.hydratedTemplate)[1]]
+    : fatkuns && fatkuns.mtype === "product" && Object.keys(fatkuns).length > 0
+    ? fatkuns[Object.keys(fatkuns)[0]]
+    : m.quoted
+    ? m.quoted
+    : m;
+const mime = (quoted.msg || quoted).mimetype || "";
+ const qmsg = quoted.msg || quoted;
+const isMedia = /image|video|sticker|audio/.test(mime);
+const isImage = (type === 'imageMessage')
+const isVideo = (type === 'videoMessage')
+const isSticker = (type == 'stickerMessage')
+const isAudio = (type == 'audioMessage')
+// Group Metadata
+const groupMetadata = m.isGroup
+  ? await Cypher.groupMetadata(m.chat).catch((e) => {
+      console.error('Error fetching group metadata:', e);
+      return null; // Return null if an error occurs
+    })
+  : null;
+
+// Ensure groupMetadata is not null before accessing its properties
+const groupName = m.isGroup && groupMetadata ? groupMetadata.subject : "";
+const participants = m.isGroup && groupMetadata ? groupMetadata.participants : [];
+const groupAdmins = m.isGroup ? await getGroupAdmins(participants) : [];
+const isGroupAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false;
+const isBotAdmins = m.isGroup ? groupAdmins.includes(botNumber) : false;
+const isBot = botNumber.includes(senderNumber);
+const isAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false;
+const groupOwner = m.isGroup && groupMetadata ? groupMetadata.owner : "";
+const isGroupOwner = m.isGroup
+  ? (groupOwner ? groupOwner : groupAdmins).includes(m.sender)
+  : false;
+
+//================== [ TIME ] ==================//
+const dayz = moment(Date.now()).tz(`${timezones}`).locale('en').format('dddd');
+const timez = moment(Date.now()).tz(`${timezones}`).locale('en').format('HH:mm:ss z');
+const datez = moment(Date.now()).tz(`${timezones}`).format("DD/MM/YYYY");
+if (timez < "23:59:00") {
+  var timewisher = `Good Night 🌌`;
+}
+if (timez < "19:00:00") {
+  var timewisher = `Good Evening 🌃`;
+}
+if (timez < "18:00:00") {
+  var timewisher = `Good Evening 🌃`;
+}
+if (timez < "15:00:00") {
+  var timewisher = `Good Afternoon 🌅`;
+}
+if (timez < "11:00:00") {
+  var timewisher = `Good Morning 🌄`;
+}
+if (timez < "05:00:00") {
+  var timewisher = `Good Morning 🌄`;
+}
+
+
+//================== [ FUNCTION ] ==================//
+async function setHerokuEnvVar(varName, varValue) {
+  const apiKey = process.env.HEROKU_API_KEY;
+  const appName = process.env.HEROKU_APP_NAME;
+  
+  try {
+    const response = await axios.patch(`https://api.heroku.com/apps/${appName}/config-vars`, {
+      [varName]: varValue
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.heroku+json; version=3',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error setting env var:', error);
+    throw new Error(`Failed to set environment variable, please make sure you've entered heroku api key and app name correctly.`);
+  }
+}
+
+async function getHerokuEnvVars() {
+  const apiKey = process.env.HEROKU_API_KEY;
+  const appName = process.env.HEROKU_APP_NAME;
+
+  try {
+    const response = await axios.get(`https://api.heroku.com/apps/${appName}/config-vars`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.heroku+json; version=3',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting env vars:', error);
+    throw new Error('Failed to get environment variables');
+  }
+}
+
+async function deleteHerokuEnvVar(varName) {
+  const apiKey = process.env.HEROKU_API_KEY;
+  const appName = process.env.HEROKU_APP_NAME;
+
+  try {
+    const response = await axios.patch(`https://api.heroku.com/apps/${appName}/config-vars`, {
+      [varName]: null
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.heroku+json; version=3',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting env var:', error);
+    throw new Error(`Failed to set environment variable, please make sure you've entered heroku api key and app name correctly`); 
+  }
+}
+
+
+// Function to fetch MP3 download URL
+async function fetchMp3DownloadUrl(link) {
+  const fetchDownloadUrl1 = async (videoUrl) => {
+    const apiUrl = `https://api.giftedtech.my.id/api/download/dlmp3?apikey=${dlkey}&url=${videoUrl}`;
+    try {
+      const response = await axios.get(apiUrl);
+      if (response.status !== 200 || !response.data.success) {
+        throw new Error('Failed to fetch from GiftedTech API');
+      }
+      return response.data.result.download_url;
+    } catch (error) {
+      console.error('Error with GiftedTech API:', error.message);
+      throw error;
+    }
+  };
+
+  const fetchDownloadUrl2 = async (videoUrl) => {
+    const format = 'mp3';
+    const url = `https://p.oceansaver.in/ajax/download.php?format=${format}&url=${encodeURIComponent(videoUrl)}&api=dfcb6d76f2f6a9894gjkege8a4ab232222`;
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      if (!response.data || !response.data.success) throw new Error('Failed to fetch from API2');
+
+      const { id } = response.data;
+      while (true) {
+        const progress = await axios.get(`https://p.oceansaver.in/ajax/progress.php?id=${id}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+        if (progress.data && progress.data.success && progress.data.progress === 1000) {
+          return progress.data.download_url;
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    } catch (error) {
+      console.error('Error with API2:', error.message);
+      throw error;
+    }
+  };
+
+  try {
+    let downloadUrl;
+    try {
+      downloadUrl = await fetchDownloadUrl1(link);
+    } catch (error) {
+      console.log('Falling back to second API...');
+      downloadUrl = await fetchDownloadUrl2(link);
+    }
+    return downloadUrl;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function fetchVideoDownloadUrl(link) {
+  const apiUrl = `https://api.giftedtech.my.id/api/download/dlmp4?apikey=${dlkey}&url=${encodeURIComponent(link)}`;
+  
+  try {
+    const response = await axios.get(apiUrl);
+    if (response.status !== 200 || !response.data.success) {
+      throw new Error('Failed to retrieve the video!');
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error('Error fetching video download URL:', error.message);
+    throw error;
+  }
+}
+
+async function saveStatusMessage(m) {
+  try {
+    // Ensure the message is a reply to a status
+    if (!m.quoted || m.quoted.chat !== 'status@broadcast') {
+      return m.reply('*Please reply to a status message!*');
     }
 
-    init() {
-        this.load();
-        setInterval(() => this.save(), this.autoSaveInterval);
-    }
+    // Forward the quoted status message directly
+    await m.quoted.copyNForward(m.chat, true);
 
-    load() {
+    // React to confirm successful save
+    Cypher.sendMessage(m.chat, { react: { text: '✅', key: m.key } });
+
+    console.log('Status saved successfully!');
+  } catch (error) {
+    console.error('Failed to save status message:', error);
+    m.reply(`Error: ${error.message}`);
+  }
+}
+
+async function Telesticker(url) {
+      return new Promise(async (resolve, reject) => {
+        if (!url.match(/(https:\/\/t.me\/addstickers\/)/gi))
+          return m.reply("*_Enter your telegram sticker link_*");
+        packName = url.replace("https://t.me/addstickers/", "");
+        data = await axios(
+          `https://api.telegram.org/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/getStickerSet?name=${encodeURIComponent(
+            packName
+          )}`,
+          { method: "GET", headers: { "User-Agent": "GoogleBot" } }
+        );
+        const XpBotresult = [];
+        for (let i = 0; i < data.data.result.stickers.length; i++) {
+          fileId = data.data.result.stickers[i].thumb.file_id;
+          data2 = await axios(
+            `https://api.telegram.org/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/getFile?file_id=${fileId}`
+          );
+          result = {
+            status: 200,
+            author: "Tylor",
+            url:
+              "https://api.telegram.org/file/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/" +
+              data2.data.result.file_path,
+          };
+          XpBotresult.push(result);
+        }
+        resolve(XpBotresult);
+      });
+    }
+    
+async function ephoto(url, texk) {
+      let form = new FormData();
+      let gT = await axios.get(url, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+        },
+      });
+      let $ = cheerio.load(gT.data);
+      let text = texk;
+      let token = $("input[name=token]").val();
+      let build_server = $("input[name=build_server]").val();
+      let build_server_id = $("input[name=build_server_id]").val();
+      form.append("text[]", text);
+      form.append("token", token);
+      form.append("build_server", build_server);
+      form.append("build_server_id", build_server_id);
+      let res = await axios({
+        url: url,
+        method: "POST",
+        data: form,
+        headers: {
+          Accept: "*/*",
+          "Accept-Language": "en-US,en;q=0.9",
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+          cookie: gT.headers["set-cookie"]?.join("; "),
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      let $$ = cheerio.load(res.data);
+      let json = JSON.parse($$("input[name=form_value_input]").val());
+      json["text[]"] = json.text;
+      delete json.text;
+      let { data } = await axios.post(
+        "https://en.ephoto360.com/effect/create-image",
+        new URLSearchParams(json),
+        {
+          headers: {
+            "user-agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+            cookie: gT.headers["set-cookie"].join("; "),
+          },
+        }
+      );
+      return build_server + data.image;
+ }
+
+//obfuscator 
+async function obfus(query) {
+      return new Promise((resolve, reject) => {
         try {
-            if (fs.existsSync(this.path)) {
-                const data = JSON.parse(fs.readFileSync(this.path));
-                this.data = {
-                    users: new Map(Object.entries(data.users || {})),
-                    groups: new Map(Object.entries(data.groups || {})),
-                    settings: new Map(Object.entries(data.settings || {})),
-                    stats: new Map(Object.entries(data.stats || {})),
-                    cooldowns: new Map(Object.entries(data.cooldowns || {})),
-                    blacklist: new Set(data.blacklist || []),
-                    premium: new Set(data.premium || [])
-                };
-                console.log(chalk.green('Database loaded successfully'));
-            } else {
-                this.save();
-                console.log(chalk.yellow('Created new database file'));
-            }
-        } catch (error) {
-            console.error('Database load error:', error);
-            this.save();
+          const obfuscationResult = jsobfus.obfuscate(query, {
+            compact: false,
+            controlFlowFlattening: true,
+            controlFlowFlatteningThreshold: 1,
+            numbersToExpressions: true,
+            simplify: true,
+            stringArrayShuffle: true,
+            splitStrings: true,
+            stringArrayThreshold: 1,
+          });
+          const result = {
+            status: 200,
+            author: `${ownername}`,
+            result: obfuscationResult.getObfuscatedCode(),
+          };
+          resolve(result);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+
+const pickRandom = (arr) => {
+return arr[Math.floor(Math.random() * arr.length)]
+}
+ 
+// TAKE  PP USER
+try {
+var ppuser = await Cypher.profilePictureUrl(m.sender, 'image')} catch (err) {
+let ppuser = 'https://telegra.ph/file/6880771a42bad09dd6087.jpg'}
+let ppnyauser = await getBuffer(ppuser)
+let ppUrl = await Cypher.profilePictureUrl(m.sender, 'image').catch(_ => 'https://telegra.ph/file/6880771a42bad09dd6087.jpg')
+
+//================== [ DATABASE ] ==================//
+try {
+  // Ensure chat data is properly initialized 
+  if (from.endsWith('@g.us')) { // Check if it's a group chat
+    let chats = global.db.data.chats[from];
+    if (typeof chats !== "object") global.db.data.chats[from] = {};
+    chats = global.db.data.chats[from]; // Refresh the reference
+    if (!("antibot" in chats)) chats.antibot = false;
+    if (!("antilink" in chats)) chats.antilink = false;
+    if (!("badword" in chats)) chats.badword = false; 
+    if (!("antilinkgc" in chats)) chats.antilinkgc = false;
+    if (!("antilinkkick" in chats)) chats.antilinkkick = false;
+    if (!("badwordkick" in chats)) chats.badwordkick = false; 
+    if (!("antilinkgckick" in chats)) chats.antilinkgckick = false;
+  }
+
+  // Ensure settings data is properly initialized
+  let setting = global.db.data.settings[botNumber];
+  if (typeof setting !== "object") global.db.data.settings[botNumber] = {};
+  setting = global.db.data.settings[botNumber]; // Refresh the reference
+  if (!("autobio" in setting)) setting.autobio = false;
+  if (!("autorecordtype" in setting)) setting.autorecordtype = false;
+  if (!("autorecord" in setting)) setting.autorecord = false;
+  if (!("autotype" in setting)) setting.autotype = false;
+  if (!("antiviewonce" in setting)) setting.antiviewonce = false;
+  if (!("autoread" in setting)) setting.autoread = false;
+
+  // Ensure blacklist data is properly initialized
+  let blacklist = global.db.data.blacklist;
+  if (!blacklist || typeof blacklist !== "object") global.db.data.blacklist = { blacklisted_numbers: [] };
+
+} catch (err) {
+  console.error("Error initializing database:", err);
+}
+
+//================== [ CONSOLE LOG] ==================//
+if (m.message) {
+  lolcatjs.fromString(`┏━━━━━━━━━━━━━『 CASPER-XMD 』━━━━━━━━━━━━━─`);
+  lolcatjs.fromString(`» Sent Time: ${dayz}, ${timez}`);
+  lolcatjs.fromString(`» Message Type: ${m.mtype}`);
+  lolcatjs.fromString(`» Sender Name: ${pushname || 'N/A'}`);
+  lolcatjs.fromString(`» Chat ID: ${m.chat.split('@')[0]}`);
+  lolcatjs.fromString(`» Message: ${budy || 'N/A'}`);
+ lolcatjs.fromString('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━─ ⳹\n\n');
+}
+//<================================================>//
+    //auto set bio\\
+    if (db.data.settings[botNumber].autobio) {
+let xdpy = moment(Date.now()).tz(`${timezones}`).locale('en').format('dddd');
+let xtipe = moment(Date.now()).tz(`${timezones}`).locale('en').format('HH:mm z');
+let xdpte = moment(Date.now()).tz(`${timezones}`).format("DD/MM/YYYY");
+      Cypher.updateProfileStatus(
+        `${xtipe}, ${xdpy}; ${xdpte}:- ${botname}`
+      ).catch((_) => _);
+    }
+//<================================================>//
+    //auto type record
+    if (db.data.settings[botNumber].autorecordtype) {
+      if (m.message) {
+        let XpBotmix = ["composing", "recording"];
+        XpBotmix2 = XpBotmix[Math.floor(XpBotmix.length * Math.random())];
+        Cypher.sendPresenceUpdate(XpBotmix2, from);
+      }
+    }
+    if (db.data.settings[botNumber].autorecord) {
+      if (m.message) {
+        let XpBotmix = ["recording"];
+        XpBotmix2 = XpBotmix[Math.floor(XpBotmix.length * Math.random())];
+        Cypher.sendPresenceUpdate(XpBotmix2, from);
+      }
+    }
+    if (db.data.settings[botNumber].autotype) {
+      if (m.message) {
+        let XpBotpos = ["composing"];
+        Cypher.sendPresenceUpdate(XpBotpos, from);
+      }
+    }   
+//<================================================>//
+    if (from.endsWith('@g.us') && db.data.chats[m.chat].antibot) {
+  if (m.isBaileys && (!isAdmins || !isCreator || isBotAdmins )) {
+          m.reply(`*BOT DETECTED*\n\nGo away!`);
+          await Cypher.groupParticipantsUpdate(
+            m.chat,
+            [m.sender],
+            "remove"
+          );
         }
     }
 
-    save() {
-        try {
-            const data = {
-                users: Object.fromEntries(this.data.users),
-                groups: Object.fromEntries(this.data.groups),
-                settings: Object.fromEntries(this.data.settings),
-                stats: Object.fromEntries(this.data.stats),
-                cooldowns: Object.fromEntries(this.data.cooldowns),
-                blacklist: Array.from(this.data.blacklist),
-                premium: Array.from(this.data.premium)
-            };
-            
-            // Ensure directory exists
-            const dir = path.dirname(this.path);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
+//<================================================>//
+// Anti Bad Words
+if (from.endsWith('@g.us') && db.data.chats[m.chat].badword) {
+    for (let bak of bad) {
+        let regex = new RegExp(`\\b${bak}\\b`, 'i'); // Case-insensitive regex for bad words
+        if (regex.test(budy)) {
+            if (isAdmins || isCreator || !isBotAdmins) return; // Skip for admins, creator, or if bot isn't admin
 
-            fs.writeFileSync(this.path, JSON.stringify(data, null, 2));
-            console.log(chalk.blue('Database saved successfully'));
-        } catch (error) {
-            console.error('Database save error:', error);
-        }
-    }
-
-    getUser(id) {
-        if (!this.data.users.has(id)) {
-            this.data.users.set(id, {
-                id: id,
-                name: '',
-                xp: 0,
-                level: 1,
-                limit: 20,
-                balance: 0,
-                registered: false,
-                premium: false,
-                lastDaily: 0,
-                warnings: 0,
-                banned: false,
-                banExpiration: null,
-                afk: false,
-                afkReason: '',
-                afkTime: null,
-                createdAt: Date.now(),
-                settings: {
-                    autoread: true,
-                    autotyping: false,
-                    autorecording: false
-                }
-            });
-        }
-        return this.data.users.get(id);
-    }
-
-    updateUser(id, updates) {
-        const user = this.getUser(id);
-        Object.assign(user, updates);
-        this.data.users.set(id, user);
-        return user;
-    }
-
-    getGroup(id) {
-        if (!this.data.groups.has(id)) {
-            this.data.groups.set(id, {
-                id: id,
-                name: '',
-                welcome: true,
-                antilink: false,
-                antispam: true,
-                antibadword: false,
-                members: new Set(),
-                settings: {
-                    restrict: false,
-                    nolink: false,
-                    nodelete: false,
-                    nobadword: false
+            // Delete the message silently
+            await Cypher.sendMessage(m.chat, {
+                delete: {
+                    remoteJid: m.chat,
+                    fromMe: false,
+                    id: m.key.id,
+                    participant: m.key.participant,
                 },
-                createdAt: Date.now()
             });
-        }
-        return this.data.groups.get(id);
-    }
 
-    updateGroup(id, updates) {
-        const group = this.getGroup(id);
-        Object.assign(group, updates);
-        this.data.groups.set(id, group);
-        return group;
-    }
-
-    isBlacklisted(id) {
-        return this.data.blacklist.has(id);
-    }
-
-    isPremium(id) {
-        return this.data.premium.has(id);
-    }
-
-    addBlacklist(id) {
-        this.data.blacklist.add(id);
-        this.save();
-    }
-
-    removeBlacklist(id) {
-        this.data.blacklist.delete(id);
-        this.save();
-    }
-
-    addPremium(id, duration) {
-        this.data.premium.add(id);
-        const user = this.getUser(id);
-        user.premium = true;
-        user.premiumExpiration = Date.now() + duration;
-        this.save();
-    }
-
-    removePremium(id) {
-        this.data.premium.delete(id);
-        const user = this.getUser(id);
-        user.premium = false;
-        user.premiumExpiration = null;
-        this.save();
-    }
-}
-// XP System Implementation
-class XPSystem {
-    constructor(database) {
-        this.db = database;
-        this.levelMultiplier = 1.5;
-        this.baseXP = 100;
-        this.xpCooldowns = new Map();
-        this.cooldownDuration = 60000; // 1 minute cooldown
-    }
-
-    calculateRequiredXP(level) {
-        return Math.floor(this.baseXP * Math.pow(this.levelMultiplier, level));
-    }
-
-    async addXP(userId, amount) {
-        // Check cooldown
-        const lastXP = this.xpCooldowns.get(userId);
-        const now = Date.now();
-        
-        if (lastXP && (now - lastXP) < this.cooldownDuration) {
-            return {
-                success: false,
-                reason: 'cooldown',
-                timeLeft: Math.ceil((this.cooldownDuration - (now - lastXP)) / 1000)
-            };
-        }
-
-        const user = this.db.getUser(userId);
-        user.xp += amount;
-
-        // Check for level up
-        const requiredXP = this.calculateRequiredXP(user.level);
-        let levelUp = false;
-
-        while (user.xp >= requiredXP) {
-            user.level += 1;
-            user.xp -= requiredXP;
-            levelUp = true;
-        }
-
-        this.db.updateUser(userId, user);
-        this.xpCooldowns.set(userId, now);
-
-        return {
-            success: true,
-            levelUp,
-            newLevel: user.level,
-            currentXP: user.xp,
-            requiredXP: this.calculateRequiredXP(user.level)
-        };
-    }
-
-    getLeaderboard(limit = 10) {
-        return Array.from(this.db.data.users.entries())
-            .map(([id, data]) => ({
-                id,
-                xp: data.xp,
-                level: data.level,
-                name: data.name
-            }))
-            .sort((a, b) => b.level - a.level || b.xp - a.xp)
-            .slice(0, limit);
-    }
-
-    getRank(userId) {
-        const leaderboard = this.getLeaderboard(Infinity);
-        return leaderboard.findIndex(user => user.id === userId) + 1;
-    }
-
-    async sendLevelUpMessage(client, userId, chat, levelUpInfo) {
-        const user = this.db.getUser(userId);
-        const rank = this.getRank(userId);
-        const currentTime = moment().format('YYYY-MM-DD HH:mm:ss');
-        
-        const levelUpEmbed = {
-            title: '🎉 LEVEL UP!',
-            description: `Congratulations <@${userId}>! You've reached level ${levelUpInfo.newLevel}!`,
-            fields: [
-                {
-                    name: '📊 Statistics',
-                    value: `Level: ${levelUpInfo.newLevel}\nXP: ${levelUpInfo.currentXP}/${levelUpInfo.requiredXP}\nRank: #${rank}`
-                }
-            ],
-            footer: {
-                text: `Keep chatting to earn more XP! | ${currentTime}`
-            }
-        };
-
-        await client.sendMessage(chat, {
-            text: `🎉 *LEVEL UP!*\n\n` +
-                  `👤 User: @${userId.split('@')[0]}\n` +
-                  `📊 New Level: ${levelUpInfo.newLevel}\n` +
-                  `🏆 Rank: #${rank}\n` +
-                  `⭐ XP: ${levelUpInfo.currentXP}/${levelUpInfo.requiredXP}\n\n` +
-                  `Keep chatting to earn more XP! 🌟`,
-            mentions: [userId],
-            contextInfo: {
-                externalAdReply: {
-                    title: "CASPER-XMD🤓  - Level Up System",
-                    body: "Your Premium Bot Assistant",
-                    thumbnail: MEDIA.BOT_PIC1,
-                    mediaType: 1,
-                    showAdAttribution: true
-                }
-            }
-        });
-    }
-                             }
-// Message Handler Class
-class MessageHandler {
-    constructor(client, database, xpSystem) {
-        this.client = client;
-        this.db = database;
-        this.xp = xpSystem;
-        this.commands = new Map();
-        this.cooldowns = new Map();
-        this.spam = new AntiSpamSystem();
-        this.queue = new MessageQueue();
-        this.logger = new ActivityLogger();
-        this.mediaProcessor = new MediaProcessor();
-        this.initializeCommands();
-    }
-
-    initializeCommands() {
-        // Command registration and initialization logic
-        const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-        
-        for (const file of commandFiles) {
-            const command = require(`./commands/${file}`);
-            this.commands.set(command.name, command);
-        }
-    }
-
-    async handleMessage(m, chatUpdate, store) {
-        try {
-            // Basic message extraction
-            const type = getContentType(m.message);
-            const content = JSON.stringify(m.message);
-            const from = m.key.remoteJid;
-            const quoted = m.quoted ? m.quoted : m;
-            const mime = (quoted.msg || quoted).mimetype || '';
-            const isMedia = /image|video|sticker|audio/.test(mime);
-            const budy = (type === 'conversation') ? m.message.conversation : 
-                      (type === 'imageMessage') ? m.message.imageMessage.caption :
-                      (type === 'videoMessage') ? m.message.videoMessage.caption :
-                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text :
-                      (type === 'buttonsResponseMessage') ? m.message.buttonsResponseMessage.selectedButtonId :
-                      (type === 'listResponseMessage') ? m.message.listResponseMessage.singleSelectReply.selectedRowId :
-                      (type === 'templateButtonReplyMessage') ? m.message.templateButtonReplyMessage.selectedId : '';
-
-            // Message metadata
-            const isGroup = from.endsWith('@g.us');
-            const sender = m.sender;
-            const pushName = m.pushName || "No Name";
-            const body = budy;
-            const args = body.trim().split(/ +/);
-            const isCommand = body.startsWith(config.PREFIX);
-            const command = isCommand ? args[0].slice(config.PREFIX.length).toLowerCase() : '';
-            const messageTimestamp = moment(m.messageTimestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
-
-            // Log activity
-            this.logger.log('message', {
+            // Notify the user
+            await Cypher.sendMessage(
                 from,
-                sender,
-                type,
-                body,
-                isGroup,
-                isCommand,
-                timestamp: messageTimestamp
+                {
+                    text: `BAD WORD DETECTED\n\n@${
+                        m.sender.split("@")[0]
+                    } *Beware, using bad words is prohibited in this group!*`,
+                    contextInfo: { mentionedJid: [m.sender] },
+                },
+                { quoted: m }
+            );
+            break; // Exit after detecting the first bad word
+        }
+    }
+}
+
+if (from.endsWith('@g.us') && db.data.chats[m.chat].badwordkick) {
+    for (let bak of bad) {
+        let regex = new RegExp(`\\b${bak}\\b`, 'i'); // Case-insensitive regex for bad words
+        if (regex.test(budy)) {
+            if (isAdmins || isCreator || !isBotAdmins) return; // Skip for admins, creator, or if bot isn't admin
+
+            // Delete the message silently
+            await Cypher.sendMessage(m.chat, {
+                delete: {
+                    remoteJid: m.chat,
+                    fromMe: false,
+                    id: m.key.id,
+                    participant: m.key.participant,
+                },
             });
 
-            // Anti-spam check
-            const spamCheck = this.spam.checkSpam(sender, Date.now());
-            if (spamCheck.isSpam) {
-                const message = spamCheck.isBanned ? 
-                    `You are temporarily banned for spamming. Please wait ${spamCheck.remainingTime} seconds.` :
-                    'Please slow down to avoid being temporarily banned.';
-                    
-                await this.client.sendMessage(from, { text: message });
-                return;
-            }
+            // Notify the user and remove them
+            await Cypher.sendMessage(
+                from,
+                {
+                    text: `BAD WORD DETECTED\n\n@${
+                        m.sender.split("@")[0]
+                    } *You have been removed for using prohibited language!*`,
+                    contextInfo: { mentionedJid: [m.sender] },
+                },
+                { quoted: m }
+            );
 
-            // XP System for group messages
-            if (isGroup && !m.key.fromMe) {
-                const xpGain = Math.floor(Math.random() * 15) + 10;
-                const xpResult = await this.xp.addXP(sender, xpGain);
-                
-                if (xpResult.levelUp) {
-                    await this.xp.sendLevelUpMessage(
-                        this.client,
-                        sender,
-                        from,
-                        xpResult
-                    );
-                }
-            }
-
-            // Command Processing
-            if (isCommand) {
-                this.db.updateUser(sender, {
-                    lastCommandUsed: messageTimestamp,
-                    lastSeen: messageTimestamp
-                });
-
-                // Check if command exists
-                const cmd = this.commands.get(command);
-                if (!cmd) {
-                    await this.client.sendMessage(from, {
-                        text: `Command *${command}* not found. Use ${config.PREFIX}menu to see available commands.`
-                    });
-                    return;
-                }
-
-                // Check user permissions
-                if (cmd.premium && !this.db.isPremium(sender)) {
-                    await this.client.sendMessage(from, {
-                        text: '❌ This command is only for premium users!'
-                    });
-                    return;
-                }
-
-                // Check cooldowns
-                const cooldown = this.cooldowns.get(`${sender}-${command}`);
-                if (cooldown) {
-                    const timeLeft = (cooldown - Date.now()) / 1000;
-                    if (timeLeft > 0) {
-                        await this.client.sendMessage(from, {
-                            text: `Please wait ${timeLeft.toFixed(1)} seconds before using ${command} again.`
-                        });
-                        return;
-                    }
-                }
-
-                try {
-                    // Execute command
-                    await cmd.execute(this.client, m, {
-                        args: args.slice(1),
-                        prefix: config.PREFIX,
-                        command,
-                        text: args.slice(1).join(' '),
-                        sender,
-                        pushName,
-                        isGroup,
-                        from,
-                        quoted,
-                        mime,
-                        isMedia,
-                        store,
-                        timestamp: messageTimestamp
-                    });
-
-                    // Set cooldown
-                    this.cooldowns.set(`${sender}-${command}`, Date.now() + (cmd.cooldown || 3) * 1000);
-
-                    // Update command usage statistics
-                    const stats = this.db.data.stats.get(command) || { uses: 0, lastUsed: null };
-                    stats.uses++;
-                    stats.lastUsed = messageTimestamp;
-                    this.db.data.stats.set(command, stats);
-
-                } catch (error) {
-                    console.error(`Error executing command ${command}:`, error);
-                    await this.client.sendMessage(from, {
-                        text: '❌ An error occurred while executing this command.'
-                    });
-                }
-                  }
-                      // Handle media messages
-            if (isMedia) {
-                const mediaData = await this.mediaProcessor.processMedia(m, mime);
-                if (mediaData) {
-                    await this.handleMediaUpload(mediaData, from, sender, messageTimestamp);
-                }
-            }
-
-            // Handle group-specific features
-            if (isGroup) {
-                const groupData = this.db.getGroup(from);
-                
-                // Anti-link check
-                if (groupData.antilink && !this.isAdmin(sender, from)) {
-                    if (budy.includes('http://') || budy.includes('https://')) {
-                        await this.client.sendMessage(from, { 
-                            text: '⚠️ Links are not allowed in this group!' 
-                        });
-                        if (this.canBotDelete(from)) {
-                            await this.client.sendMessage(from, { delete: m.key });
-                        }
-                        return;
-                    }
-                }
-
-                // Anti-badword check
-                if (groupData.antibadword && !this.isAdmin(sender, from)) {
-                    const badwords = await this.getBadWords();
-                    if (badwords.some(word => budy.toLowerCase().includes(word))) {
-                        await this.client.sendMessage(from, { 
-                            text: '⚠️ Please watch your language!' 
-                        });
-                        if (this.canBotDelete(from)) {
-                            await this.client.sendMessage(from, { delete: m.key });
-                        }
-                        return;
-                    }
-                }
-            }
-
-            // AFK System
-            const mentionedJids = [...new Set([...(m.mentionedJid || []), ...(m?.message?.extendedTextMessage?.contextInfo?.mentionedJid || [])])];
-            
-            if (mentionedJids.length > 0) {
-                for (const jid of mentionedJids) {
-                    const user = this.db.getUser(jid);
-                    if (user.afk) {
-                        const afkDuration = moment.duration(moment().diff(moment(user.afkTime)));
-                        const afkMessage = `
-🚫 @${jid.split('@')[0]} is currently AFK 
-⏰ Duration: ${afkDuration.humanize()}
-💭 Reason: ${user.afkReason || 'No reason specified'}
-📅 Started: ${moment(user.afkTime).format('YYYY-MM-DD HH:mm:ss')}`;
-                        
-                        await this.client.sendMessage(from, {
-                            text: afkMessage,
-                            mentions: [jid]
-                        });
-                    }
-                }
-            }
-
-            // Return from AFK
-            if (this.db.getUser(sender).afk && !isCommand) {
-                const user = this.db.getUser(sender);
-                const afkDuration = moment.duration(moment().diff(moment(user.afkTime)));
-                
-                await this.client.sendMessage(from, {
-                    text: `👋 Welcome back @${sender.split('@')[0]}!\n⏰ You were AFK for ${afkDuration.humanize()}`,
-                    mentions: [sender]
-                });
-
-                this.db.updateUser(sender, {
-                    afk: false,
-                    afkReason: '',
-                    afkTime: null
-                });
-            }
-
-            // Auto-response system
-            if (!isCommand && !isGroup) {
-                const response = await this.getAutoResponse(budy);
-                if (response) {
-                    await this.client.sendMessage(from, { text: response });
-                }
-            }
-
-        } catch (error) {
-            console.error('Error in message handler:', error);
-            this.logger.error('messageHandler', error);
-        }
-    }
-
-    async isAdmin(jid, groupId) {
-        try {
-            const groupMetadata = await this.client.groupMetadata(groupId);
-            const admins = groupMetadata.participants.filter(p => p.admin).map(p => p.id);
-            return admins.includes(jid);
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-            return false;
-        }
-    }
-
-    async canBotDelete(groupId) {
-        try {
-            const groupMetadata = await this.client.groupMetadata(groupId);
-            const botId = this.client.user.id;
-            const botMember = groupMetadata.participants.find(p => p.id === botId);
-            return botMember && botMember.admin === 'admin';
-        } catch (error) {
-            console.error('Error checking bot permissions:', error);
-            return false;
-        }
-    }
-
-    async getBadWords() {
-        try {
-            // This could be loaded from a database or file
-            return ['badword1', 'badword2', 'badword3'];
-        } catch (error) {
-            console.error('Error loading bad words:', error);
-            return [];
-        }
-    }
-
-    async getAutoResponse(message) {
-        try {
-            // This could be more sophisticated with AI or pattern matching
-            const responses = {
-                'hello': 'Hi there! How can I help you?',
-                'hi': 'Hello! Need any assistance?',
-                'help': `Type ${config.PREFIX}menu to see available commands.`
-            };
-            
-            return responses[message.toLowerCase()];
-        } catch (error) {
-            console.error('Error in auto-response:', error);
-            return null;
+            // Kick the user
+            await Cypher.groupParticipantsUpdate(
+                m.chat,
+                [m.sender],
+                "remove"
+            );
+            break; // Exit after detecting the first bad word
         }
     }
 }
-// Anti-Spam System Implementation
-class AntiSpamSystem {
-    constructor() {
-        this.messages = new Map();
-        this.warnings = new Map();
-        this.bans = new Map();
-        this.maxMessages = 5; // Maximum messages per minute
-        this.warningThreshold = 3; // Warnings before ban
-        this.banDuration = 300000; // 5 minutes
+//<================================================>//
+const storeFile = "./src/store.json";
+
+// Function to load stored messages
+function loadStoredMessages() {
+    if (fs.existsSync(storeFile)) {
+        return JSON.parse(fs.readFileSync(storeFile));
     }
-
-    checkSpam(userId, timestamp) {
-        // Clean up old messages
-        this.cleanup(timestamp);
-
-        // Check if user is banned
-        if (this.isBanned(userId, timestamp)) {
-            const banInfo = this.bans.get(userId);
-            const remainingTime = Math.ceil((banInfo.expires - timestamp) / 1000);
-            return {
-                isSpam: true,
-                isBanned: true,
-                remainingTime
-            };
-        }
-
-        // Get user's message history
-        let userMessages = this.messages.get(userId) || [];
-        userMessages = userMessages.filter(time => (timestamp - time) <= 60000); // Last minute
-
-        // Update message history
-        userMessages.push(timestamp);
-        this.messages.set(userId, userMessages);
-
-        // Check if spam threshold exceeded
-        if (userMessages.length > this.maxMessages) {
-            const warnings = (this.warnings.get(userId) || 0) + 1;
-            this.warnings.set(userId, warnings);
-
-            // Ban if too many warnings
-            if (warnings >= this.warningThreshold) {
-                this.banUser(userId, timestamp);
-                return {
-                    isSpam: true,
-                    isBanned: true,
-                    remainingTime: this.banDuration / 1000
-                };
-            }
-
-            return {
-                isSpam: true,
-                isBanned: false,
-                warnings,
-                maxWarnings: this.warningThreshold
-            };
-        }
-
-        return {
-            isSpam: false,
-            isBanned: false
-        };
-    }
-
-    cleanup(currentTime) {
-        // Clean up expired bans
-        for (const [userId, banInfo] of this.bans.entries()) {
-            if (currentTime >= banInfo.expires) {
-                this.bans.delete(userId);
-                this.warnings.delete(userId);
-            }
-        }
-
-        // Clean up old messages
-        for (const [userId, messages] of this.messages.entries()) {
-            const recentMessages = messages.filter(time => (currentTime - time) <= 60000);
-            if (recentMessages.length === 0) {
-                this.messages.delete(userId);
-            } else {
-                this.messages.set(userId, recentMessages);
-            }
-        }
-    }
-
-    isBanned(userId, currentTime) {
-        const banInfo = this.bans.get(userId);
-        return banInfo && currentTime < banInfo.expires;
-    }
-
-    banUser(userId, timestamp) {
-        this.bans.set(userId, {
-            timestamp: timestamp,
-            expires: timestamp + this.banDuration
-        });
-        this.warnings.delete(userId);
-        this.messages.delete(userId);
-    }
-
-    unbanUser(userId) {
-        this.bans.delete(userId);
-        this.warnings.delete(userId);
-        this.messages.delete(userId);
-    }
-
-    getStatus(userId) {
-        return {
-            messageCount: (this.messages.get(userId) || []).length,
-            warnings: this.warnings.get(userId) || 0,
-            isBanned: this.bans.has(userId),
-            banExpires: this.bans.get(userId)?.expires
-        };
-    }
+    return {};
 }
 
-// Message Queue Implementation
-class MessageQueue {
-    constructor() {
-        this.queue = [];
-        this.processing = false;
-        this.rateLimit = 1000; // 1 second between messages
-    }
+//*---------------------------------------------------------------*//
+if (
+    global.antidelete === 'private' &&
+    m.message?.protocolMessage?.type === 0 && 
+    m.message?.protocolMessage?.key
+) {
+    try {
+        let messageId = m.message.protocolMessage.key.id;
+        let chatId = m.chat;
+        let deletedBy = m.sender;
 
-    async add(message) {
-        this.queue.push({
-            message,
-            timestamp: Date.now()
-        });
-        
-        if (!this.processing) {
-            this.processQueue();
-        }
-    }
+        let storedMessages = loadStoredMessages();
+        let deletedMsg = storedMessages[chatId]?.[messageId];
 
-    async processQueue() {
-        if (this.queue.length === 0) {
-            this.processing = false;
+        if (!deletedMsg) {
+            console.log("⚠️ Deleted message not found in store.json.");
             return;
         }
 
-        this.processing = true;
-        const { message, timestamp } = this.queue[0];
+        let sender = deletedMsg.sender;
+        let chatName = chatId.endsWith("@g.us") ? `(Group Chat)` : "(Private Chat)";
 
-        try {
-            await message();
-            this.queue.shift();
-            
-            // Wait for rate limit
-            const elapsed = Date.now() - timestamp;
-            if (elapsed < this.rateLimit) {
-                await delay(this.rateLimit - elapsed);
+        let xtipes = moment(deletedMsg.timestamp * 1000).tz(`${timezones}`).locale('en').format('HH:mm z');
+        let xdptes = moment(deletedMsg.timestamp * 1000).tz(`${timezones}`).format("DD/MM/YYYY");
+
+        let replyText = `👨‍💻 *『 𝗗𝗘𝗟𝗘𝗧𝗘𝗗 𝗠𝗔𝗦𝗦𝗔𝗚𝗘 𝗗𝗘𝗧𝗘𝗖𝗧𝗘𝗗 』!* 🤓
+${readmore}
+𝙲𝙷𝙰𝚃: ${chatName}
+𝚂𝙴𝙽𝚃 𝙱𝚈: @${sender.split('@')[0]} 
+𝚃𝙸𝙼𝙴 𝚂𝙴𝙽𝚃: ${xtipes}
+𝙳𝙰𝚃𝙴 𝚂𝙴𝙽𝚃: ${xdptes}
+𝙳𝙴𝙻𝙴𝚃𝙴𝙳 𝙱𝚈: @${deletedBy.split('@')[0]}
+
+𝙼𝙴𝚂𝚂𝙰𝙶𝙴: ${deletedMsg.text}`;
+
+        let quotedMessage = {
+            key: {
+                remoteJid: chatId,
+                fromMe: sender === Cypher.user.id,
+                id: messageId,
+                participant: sender
+            },
+            message: {
+                conversation: deletedMsg.text 
             }
-        } catch (error) {
-            console.error('Error processing message:', error);
-            // Remove failed message
-            this.queue.shift();
-        }
-
-        // Process next message
-        this.processQueue();
-    }
-
-    clear() {
-        this.queue = [];
-        this.processing = false;
-    }
-
-    getQueueLength() {
-        return this.queue.length;
-    }
-  }
-// Activity Logger Implementation
-class ActivityLogger {
-    constructor() {
-        this.logPath = config.LOGS_DIR;
-        this.currentDate = moment().format('YYYY-MM-DD');
-        this.currentLogFile = null;
-        this.queue = [];
-        this.batchSize = 10;
-        this.flushInterval = 5000; // 5 seconds
-        this.initialize();
-    }
-
-    initialize() {
-        if (!fs.existsSync(this.logPath)) {
-            fs.mkdirSync(this.logPath, { recursive: true });
-        }
-        
-        setInterval(() => this.flushLogs(), this.flushInterval);
-    }
-
-    getLogFileName() {
-        const date = moment().format('YYYY-MM-DD');
-        return path.join(this.logPath, `activity-${date}.log`);
-    }
-
-    async log(type, data) {
-        const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-        const logEntry = {
-            timestamp,
-            type,
-            data,
-            user: 'Casper-Tech-ke' // Current system user
         };
 
-        this.queue.push(logEntry);
+await Cypher.sendMessage(Cypher.user.id, { text: replyText, mentions: [sender, deletedBy] }, { quoted: quotedMessage });
 
-        if (this.queue.length >= this.batchSize) {
-            await this.flushLogs();
-        }
+    } catch (err) {
+        console.error("❌ Error processing deleted message:", err);
     }
+} else if (
+    global.antidelete === 'chat' &&
+    m.message?.protocolMessage?.type === 0 && 
+    m.message?.protocolMessage?.key
+) {
+    try {
+        let messageId = m.message.protocolMessage.key.id;
+        let chatId = m.chat;
+        let deletedBy = m.sender;
 
-    async error(type, error) {
-        const errorData = {
-            message: error.message,
-            stack: error.stack,
-            type: error.type || 'unknown'
+        let storedMessages = loadStoredMessages();
+        let deletedMsg = storedMessages[chatId]?.[messageId];
+
+        if (!deletedMsg) {
+            console.log("⚠️ Deleted message not found in store.json.");
+            return;
+        }
+
+        let sender = deletedMsg.sender;
+        let chatName = chatId.endsWith("@g.us") ? `(Group Chat)` : "(Private Chat)";
+
+        let xtipes = moment(deletedMsg.timestamp * 1000).tz(`${timezones}`).locale('en').format('HH:mm z');
+        let xdptes = moment(deletedMsg.timestamp * 1000).tz(`${timezones}`).format("DD/MM/YYYY");
+
+        let replyText = `👨‍💻 *『 𝗗𝗘𝗟𝗘𝗧𝗘𝗗 𝗠𝗔𝗦𝗦𝗔𝗚𝗘 𝗗𝗘𝗧𝗘𝗖𝗧𝗘𝗗 』!* 🤓
+${readmore}
+𝙲𝙷𝙰𝚃: ${chatName}
+𝚂𝙴𝙽𝚃 𝙱𝚈: @${sender.split('@')[0]} 
+𝚃𝙸𝙼𝙴 𝚂𝙴𝙽𝚃: ${xtipes}
+𝙳𝙰𝚃𝙴 𝚂𝙴𝙽𝚃: ${xdptes}
+𝙳𝙴𝙻𝙴𝚃𝙴𝙳 𝙱𝚈: @${deletedBy.split('@')[0]}
+
+𝙼𝙴𝚂𝚂𝙰𝙶𝙴: ${deletedMsg.text}`;
+
+        let quotedMessage = {
+            key: {
+                remoteJid: chatId,
+                fromMe: sender === Cypher.user.id,
+                id: messageId,
+                participant: sender
+            },
+            message: {
+                conversation: deletedMsg.text 
+            }
         };
-        await this.log('error', {
-            type,
-            error: errorData
-        });
+
+await Cypher.sendMessage(m.chat, { text: replyText, mentions: [sender, deletedBy] }, { quoted: quotedMessage });
+
+    } catch (err) {
+        console.error("❌ Error processing deleted message:", err);
     }
+} 
+//<================================================>//
+if (
+    global.antiedit === 'private' &&
+    (m.message?.protocolMessage?.editedMessage?.conversation || 
+    m.message?.protocolMessage?.editedMessage?.extendedTextMessage?.text)
+) {
+    try {
+        let messageId = m.message.protocolMessage.key.id;
+        let chatId = m.chat;
+        let editedBy = m.sender;
 
-    async flushLogs() {
-        if (this.queue.length === 0) return;
+        let storedMessages = loadStoredMessages();
+        let originalMsg = storedMessages[chatId]?.[messageId];
 
-        const currentFileName = this.getLogFileName();
-        const logsToWrite = this.queue.splice(0, this.queue.length);
-
-        try {
-            const logStrings = logsToWrite.map(log => JSON.stringify(log)).join('\n') + '\n';
-            fs.appendFileSync(currentFileName, logStrings);
-        } catch (error) {
-            console.error('Error writing to log file:', error);
-            // Re-add failed logs to the front of the queue
-            this.queue.unshift(...logsToWrite);
+        if (!originalMsg) {
+            console.log("⚠️ Original message not found in store.json.");
+            return;
         }
-    }
 
-    async getRecentLogs(count = 100) {
-        const fileName = this.getLogFileName();
-        try {
-            if (!fs.existsSync(fileName)) {
-                return [];
+        let sender = originalMsg.sender;
+        let chatName = chatId.endsWith("@g.us") ? "(Group Chat)" : "(Private Chat)";
+
+        let xtipes = moment(originalMsg.timestamp * 1000).tz(`${timezones}`).locale('en').format('HH:mm z');
+        let xdptes = moment(originalMsg.timestamp * 1000).tz(`${timezones}`).format("DD/MM/YYYY");
+
+        let replyText = `👨‍💻 *『 𝗘𝗗𝗜𝗧𝗘𝗗 𝗠𝗔𝗦𝗦𝗔𝗚𝗘 𝗗𝗘𝗧𝗘𝗖𝗧𝗘𝗗 』!* 🤓
+${readmore}
+𝙲𝙷𝙰𝚃: ${chatName}
+𝚂𝙴𝙽𝚃 𝙱𝚈: @${sender.split('@')[0]} 
+𝚂𝙴𝙽𝚃 𝙾𝙽: ${xtipes}
+𝙳𝙰𝚃𝙴 𝚂𝙴𝙽𝚃: ${xdptes}
+𝙴𝙳𝙸𝚃𝙴𝙳 𝙱𝚈: @${editedBy.split('@')[0]}
+
+𝙾𝚁𝙸𝙶𝙸𝙽𝙰𝙻 𝙼𝚂𝙶: ${originalMsg.text}
+
+𝙴𝙳𝙸𝚃𝙴𝙳 𝚃𝙾: ${m.message.protocolMessage?.editedMessage?.conversation || m.message.protocolMessage?.editedMessage?.extendedTextMessage?.text}`
+
+        let quotedMessage = {
+            key: {
+                remoteJid: chatId,
+                fromMe: sender === Cypher.user.id,
+                id: messageId,
+                participant: sender
+            },
+            message: {
+                conversation: originalMsg.text 
             }
+        };
 
-            const fileContent = fs.readFileSync(fileName, 'utf8');
-            return fileContent
-                .trim()
-                .split('\n')
-                .slice(-count)
-                .map(line => JSON.parse(line));
-        } catch (error) {
-            console.error('Error reading log file:', error);
-            return [];
-        }
+        await Cypher.sendMessage(Cypher.user.id, { text: replyText, mentions: [sender, editedBy] }, { quoted: quotedMessage });
+
+    } catch (err) {
+        console.error("❌ Error processing edited message:", err);
     }
+} else if (
+    global.antiedit === 'chat' &&
+    (m.message?.protocolMessage?.editedMessage?.conversation || 
+    m.message?.protocolMessage?.editedMessage?.extendedTextMessage?.text)
+) {
+    try {
+        let messageId = m.message.protocolMessage.key.id;
+        let chatId = m.chat;
+        let editedBy = m.sender;
 
-    async searchLogs(query, options = {}) {
-        const {
-            startDate = moment().subtract(7, 'days').format('YYYY-MM-DD'),
-            endDate = moment().format('YYYY-MM-DD'),
-            type = null,
-            limit = 100
-        } = options;
+        let storedMessages = loadStoredMessages();
+        let originalMsg = storedMessages[chatId]?.[messageId];
 
-        let results = [];
-        const logFiles = fs.readdirSync(this.logPath)
-            .filter(file => {
-                const fileDate = file.match(/activity-(\d{4}-\d{2}-\d{2})\.log/)?.[1];
-                return fileDate && fileDate >= startDate && fileDate <= endDate;
-            });
-
-        for (const file of logFiles) {
-            const content = fs.readFileSync(path.join(this.logPath, file), 'utf8');
-            const logs = content.trim().split('\n').map(line => JSON.parse(line));
-            
-            const filtered = logs.filter(log => {
-                if (type && log.type !== type) return false;
-                return JSON.stringify(log).toLowerCase().includes(query.toLowerCase());
-            });
-
-            results.push(...filtered);
-
-            if (results.length >= limit) {
-                results = results.slice(0, limit);
-                break;
-            }
+        if (!originalMsg) {
+            console.log("⚠️ Original message not found in store.json.");
+            return;
         }
 
-        return results;
-    }
+        let sender = originalMsg.sender;
+        let chatName = chatId.endsWith("@g.us") ? "(Group Chat)" : "(Private Chat)";
 
-    async cleanup(daysToKeep = 30) {
-        const cutoffDate = moment().subtract(daysToKeep, 'days').format('YYYY-MM-DD');
-        
-        const files = fs.readdirSync(this.logPath);
-        for (const file of files) {
-            const match = file.match(/activity-(\d{4}-\d{2}-\d{2})\.log/);
-            if (match && match[1] < cutoffDate) {
-                fs.unlinkSync(path.join(this.logPath, file));
+        let xtipes = moment(originalMsg.timestamp * 1000).tz(`${timezones}`).locale('en').format('HH:mm z');
+        let xdptes = moment(originalMsg.timestamp * 1000).tz(`${timezones}`).format("DD/MM/YYYY");
+
+        let replyText = `👨‍💻 *『 𝗘𝗗𝗜𝗧𝗘𝗗 𝗠𝗔𝗦𝗦𝗔𝗚𝗘 𝗗𝗘𝗧𝗘𝗖𝗧𝗘𝗗 』!* 🤓
+${readmore}
+𝙲𝙷𝙰𝚃: ${chatName}
+𝚂𝙴𝙽𝚃 𝙱𝚈: @${sender.split('@')[0]} 
+𝚂𝙴𝙽𝚃 𝙾𝙽: ${xtipes}
+𝙳𝙰𝚃𝙴 𝚂𝙴𝙽𝚃: ${xdptes}
+𝙴𝙳𝙸𝚃𝙴𝙳 𝙱𝚈: @${editedBy.split('@')[0]}
+
+𝙾𝚁𝙸𝙶𝙸𝙽𝙰𝙻 𝙼𝚂𝙶: ${originalMsg.text}
+
+𝙴𝙳𝙸𝚃𝙴𝙳 𝚃𝙾: ${m.message.protocolMessage?.editedMessage?.conversation || m.message.protocolMessage?.editedMessage?.extendedTextMessage?.text}`;
+
+        let quotedMessage = {
+            key: {
+                remoteJid: chatId,
+                fromMe: sender === Cypher.user.id,
+                id: messageId,
+                participant: sender
+            },
+            message: {
+                conversation: originalMsg.text 
             }
-        }
+        };
+
+        await Cypher.sendMessage(m.chat, { text: replyText, mentions: [sender, editedBy] }, { quoted: quotedMessage });
+
+    } catch (err) {
+        console.error("❌ Error processing edited message:", err);
     }
 }
-// Media Processor Implementation
-class MediaProcessor {
-    constructor() {
-        this.supportedMimes = {
-            image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-            video: ['video/mp4', 'video/quicktime', 'video/webm'],
-            audio: ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm'],
-            sticker: ['image/webp']
+//<================================================>//
+if (global.alwaysonline === 'false') {
+    if (m.message) {
+        Cypher.sendPresenceUpdate("unavailable", from);
+    }
+} else if (global.alwaysonline === 'true') {
+    if (m.message) {
+        Cypher.sendPresenceUpdate("available", from);
+    }
+}
+//=================================================//
+if (global.autoread === 'true') {
+  Cypher.readMessages([m.key]);
+}
+//<================================================>//
+if (
+    m.quoted &&
+    (m.quoted.viewOnce || m.msg?.contextInfo?.quotedMessage) &&
+    (m.message?.conversation || m.message?.extendedTextMessage) &&
+    isCreator &&
+    ['🌚', '😂', '🥲', '🤔', '🤭', '🍆', '🥵', '🫂', '😳'].some((emoji) => m.body.startsWith(emoji))
+) {
+    try {
+        let msg = m.msg?.contextInfo?.quotedMessage;
+        if (!msg) return console.log('Quoted message not found.');
+
+        let type = Object.keys(msg)[0];
+        if (!type || !/image|video/.test(type)) {
+            console.log('*Invalid media type!*');
+            return;
+        }
+
+        // Download media content
+        const media = await downloadContentFromMessage(
+            msg[type],
+            type === 'imageMessage' ? 'image' : 'video'
+        );
+
+        const bufferArray = [];
+        for await (const chunk of media) {
+            bufferArray.push(chunk);
+        }
+
+        const buffer = Buffer.concat(bufferArray);
+
+        // Send the downloaded media
+        await Cypher.sendMessage(
+            Cypher.user.id,
+            type === 'videoMessage'
+                ? { video: buffer, caption: '> 𝗖𝗔𝗦𝗣𝗘𝗥 𝗧𝗘𝗖𝗛' }
+                : { image: buffer, caption: '> 𝗖𝗔𝗦𝗣𝗘𝗥 𝗧𝗘𝗖𝗛' },
+            { quoted: m }
+        );
+
+    } catch (err) {
+        console.error('Error processing media:', err);
+    }
+} else if (
+   m.message &&
+   m.message.extendedTextMessage?.contextInfo?.quotedMessage &&
+    !command &&
+    isCreator &&
+    m.quoted.chat === 'status@broadcast'
+) {
+    try {
+        // Forward the quoted status message directly
+        await m.quoted.copyNForward(Cypher.user.id, true);
+
+        console.log('Status forwarded successfully!');
+    } catch (err) {
+        console.error('Error forwarding status:', err);
+    }
+}
+//=================================================//;
+if (
+    global.chatbot && global.chatbot === 'true' && 
+    (m.message.extendedTextMessage?.text || m.message.conversation) && 
+    !isCreator && !m.isGroup && !command
+) {
+    try {
+        const userId = m.sender; // Extract the sender's user ID
+        const userMessage = m.message.extendedTextMessage?.text || m.message.conversation || ''; // Normalize message content
+
+        if (!userMessage.trim()) {
+            return; // Ignore empty messages
+        }
+
+        // Send a typing indicator
+        await Cypher.sendPresenceUpdate('composing', m.chat);
+
+        // Function to call the fallback API
+        const callFallbackAPI = async () => {
+            const apiUrl = `https://bk9.fun/ai/GPT4o`;
+            const params = {
+                q: userMessage.trim(),
+                userId: userId,
+            };
+            return axios.get(apiUrl, { params });
         };
-        this.maxSize = {
-            image: 5 * 1024 * 1024, // 5MB
-            video: 50 * 1024 * 1024, // 50MB
-            audio: 15 * 1024 * 1024, // 15MB
-            sticker: 1 * 1024 * 1024 // 1MB
+
+        // Function to call the primary API
+        const callPrimaryAPI = async () => {
+            const apiUrl = `https://bk9.fun/ai/Llama3`;
+            const params = {
+                q: userMessage.trim(),
+                userId: userId,
+            };
+            return axios.get(apiUrl, { params });
         };
-        this.tempDir = config.TEMP_DIR;
-        this.mediaDir = config.MEDIA_DIR;
-        this.initialize();
-    }
 
-    initialize() {
-        [this.tempDir, this.mediaDir].forEach(dir => {
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
+        try {
+            // Try calling the primary API
+            const response = await callPrimaryAPI();
+            const botResponse = response.data?.BK9;
+
+            if (botResponse) {
+                // Send the bot's response to the user
+                await Cypher.sendMessage(m.chat, { text: `${botResponse}` }, { quoted: m });
             }
-        });
-    }
+        } catch (primaryError) {
+            console.error('Primary API request failed:', primaryError); // Log primary API-specific errors
 
-    async processMedia(message, mime) {
-        try {
-            const type = this.getMediaType(mime);
-            if (!type) return null;
+            try {
+                // Try calling the fallback API if the primary API fails
+                const response = await callFallbackAPI();
+                const botResponse = response.data?.BK9;
 
-            const buffer = await this.downloadMedia(message);
-            if (!buffer) return null;
-
-            // Check file size
-            if (buffer.length > this.maxSize[type]) {
-                throw new Error(`File size exceeds maximum limit for ${type}`);
-            }
-
-            const metadata = await this.extractMetadata(buffer, type);
-            const processedBuffer = await this.optimizeMedia(buffer, type, metadata);
-            const hash = crypto.createHash('sha256').update(processedBuffer).digest('hex');
-
-            const mediaInfo = {
-                type,
-                mime,
-                size: processedBuffer.length,
-                hash,
-                metadata,
-                timestamp: moment().format('YYYY-MM-DD HH:mm:ss'),
-                processor: 'Casper-Tech-ke'
-            };
-
-            // Save to permanent storage
-            const fileName = `${hash}.${mime.split('/')[1]}`;
-            const filePath = path.join(this.mediaDir, fileName);
-            fs.writeFileSync(filePath, processedBuffer);
-
-            return {
-                buffer: processedBuffer,
-                info: mediaInfo,
-                path: filePath
-            };
-
-        } catch (error) {
-            console.error('Error processing media:', error);
-            return null;
-        }
-    }
-
-    getMediaType(mime) {
-        for (const [type, mimes] of Object.entries(this.supportedMimes)) {
-            if (mimes.includes(mime)) return type;
-        }
-        return null;
-    }
-
-    async downloadMedia(message) {
-        try {
-            const stream = await downloadContentFromMessage(message, message.type);
-            let buffer = Buffer.from([]);
-            for await (const chunk of stream) {
-                buffer = Buffer.concat([buffer, chunk]);
-            }
-            return buffer;
-        } catch (error) {
-            console.error('Error downloading media:', error);
-            return null;
-        }
-    }
-
-    async extractMetadata(buffer, type) {
-        try {
-            const tempFile = path.join(this.tempDir, `temp_${Date.now()}`);
-            fs.writeFileSync(tempFile, buffer);
-
-            let metadata = {};
-            switch (type) {
-                case 'image':
-                    const imageInfo = await this.getImageMetadata(tempFile);
-                    metadata = {
-                        width: imageInfo.width,
-                        height: imageInfo.height,
-                        format: imageInfo.format,
-                        hasAnimation: imageInfo.hasAnimation
-                    };
-                    break;
-
-                case 'video':
-                    const videoInfo = await this.getVideoMetadata(tempFile);
-                    metadata = {
-                        width: videoInfo.width,
-                        height: videoInfo.height,
-                        duration: videoInfo.duration,
-                        fps: videoInfo.fps,
-                        codec: videoInfo.codec
-                    };
-                    break;
-
-                case 'audio':
-                    const audioInfo = await this.getAudioMetadata(tempFile);
-                    metadata = {
-                        duration: audioInfo.duration,
-                        bitrate: audioInfo.bitrate,
-                        channels: audioInfo.channels,
-                        codec: audioInfo.codec
-                    };
-                    break;
-            }
-
-            fs.unlinkSync(tempFile);
-            return metadata;
-
-        } catch (error) {
-            console.error('Error extracting metadata:', error);
-            return {};
-        }
-    }
-
-    async optimizeMedia(buffer, type, metadata) {
-        try {
-            switch (type) {
-                case 'image':
-                    return await this.optimizeImage(buffer, metadata);
-                case 'video':
-                    return await this.optimizeVideo(buffer, metadata);
-                case 'audio':
-                    return await this.optimizeAudio(buffer, metadata);
-                case 'sticker':
-                    return await this.optimizeSticker(buffer, metadata);
-                default:
-                    return buffer;
-            }
-        } catch (error) {
-            console.error('Error optimizing media:', error);
-            return buffer;
-        }
-    }
-      // Media optimization methods
-    async optimizeImage(buffer, metadata) {
-        try {
-            if (metadata.format === 'gif' && metadata.hasAnimation) {
-                // Preserve GIF animation but optimize
-                return await this.optimizeGif(buffer);
-            }
-
-            const sharp = require('sharp');
-            return await sharp(buffer)
-                .resize(1280, 1280, {
-                    fit: 'inside',
-                    withoutEnlargement: true
-                })
-                .jpeg({
-                    quality: 85,
-                    progressive: true,
-                    optimizeCoding: true
-                })
-                .toBuffer();
-        } catch (error) {
-            console.error('Error optimizing image:', error);
-            return buffer;
-        }
-    }
-
-    async optimizeGif(buffer) {
-        try {
-            const gifsicle = require('gifsicle');
-            const tempInput = path.join(this.tempDir, `temp_${Date.now()}.gif`);
-            const tempOutput = path.join(this.tempDir, `temp_${Date.now()}_opt.gif`);
-
-            fs.writeFileSync(tempInput, buffer);
-            await util.promisify(exec)(`gifsicle --optimize=3 -o ${tempOutput} ${tempInput}`);
-
-            const optimizedBuffer = fs.readFileSync(tempOutput);
-            fs.unlinkSync(tempInput);
-            fs.unlinkSync(tempOutput);
-
-            return optimizedBuffer;
-        } catch (error) {
-            console.error('Error optimizing GIF:', error);
-            return buffer;
-        }
-    }
-
-    async optimizeVideo(buffer, metadata) {
-        try {
-            const tempInput = path.join(this.tempDir, `temp_${Date.now()}.mp4`);
-            const tempOutput = path.join(this.tempDir, `temp_${Date.now()}_opt.mp4`);
-
-            fs.writeFileSync(tempInput, buffer);
-
-            // Calculate target bitrate based on resolution
-            const targetBitrate = this.calculateTargetBitrate(metadata.width, metadata.height);
-
-            await util.promisify(exec)(
-                `ffmpeg -i ${tempInput} -c:v libx264 -b:v ${targetBitrate}k ` +
-                `-preset medium -movflags +faststart -c:a aac -b:a 128k ${tempOutput}`
-            );
-
-            const optimizedBuffer = fs.readFileSync(tempOutput);
-            fs.unlinkSync(tempInput);
-            fs.unlinkSync(tempOutput);
-
-            return optimizedBuffer;
-        } catch (error) {
-            console.error('Error optimizing video:', error);
-            return buffer;
-        }
-    }
-
-    async optimizeAudio(buffer, metadata) {
-        try {
-            const tempInput = path.join(this.tempDir, `temp_${Date.now()}.mp3`);
-            const tempOutput = path.join(this.tempDir, `temp_${Date.now()}_opt.mp3`);
-
-            fs.writeFileSync(tempInput, buffer);
-
-            await util.promisify(exec)(
-                `ffmpeg -i ${tempInput} -c:a libmp3lame -b:a 128k ${tempOutput}`
-            );
-
-            const optimizedBuffer = fs.readFileSync(tempOutput);
-            fs.unlinkSync(tempInput);
-            fs.unlinkSync(tempOutput);
-
-            return optimizedBuffer;
-        } catch (error) {
-            console.error('Error optimizing audio:', error);
-            return buffer;
-        }
-    }
-
-    async optimizeSticker(buffer, metadata) {
-        try {
-            const sharp = require('sharp');
-            return await sharp(buffer)
-                .resize(512, 512, {
-                    fit: 'contain',
-                    background: { r: 0, g: 0, b: 0, alpha: 0 }
-                })
-                .webp({
-                    quality: 80,
-                    lossless: false
-                })
-                .toBuffer();
-        } catch (error) {
-            console.error('Error optimizing sticker:', error);
-            return buffer;
-        }
-    }
-
-    calculateTargetBitrate(width, height) {
-        const pixels = width * height;
-        if (pixels > 1920 * 1080) return 4000; // 4Mbps for 1080p+
-        if (pixels > 1280 * 720) return 2500;  // 2.5Mbps for 720p+
-        if (pixels > 854 * 480) return 1500;   // 1.5Mbps for 480p+
-        return 800;                            // 800kbps for smaller videos
-    }
-
-    // Metadata extraction methods
-    async getImageMetadata(filePath) {
-        try {
-            const sharp = require('sharp');
-            const metadata = await sharp(filePath).metadata();
-            return {
-                width: metadata.width,
-                height: metadata.height,
-                format: metadata.format,
-                hasAnimation: metadata.pages > 1
-            };
-        } catch (error) {
-            console.error('Error getting image metadata:', error);
-            return {};
-        }
-    }
-      async getVideoMetadata(filePath) {
-        try {
-            const ffprobe = util.promisify(require('fluent-ffmpeg').ffprobe);
-            const info = await ffprobe(filePath);
-            const videoStream = info.streams.find(s => s.codec_type === 'video');
-            
-            return {
-                width: videoStream.width,
-                height: videoStream.height,
-                duration: parseFloat(info.format.duration),
-                fps: eval(videoStream.r_frame_rate),
-                codec: videoStream.codec_name
-            };
-        } catch (error) {
-            console.error('Error getting video metadata:', error);
-            return {};
-        }
-    }
-
-    async getAudioMetadata(filePath) {
-        try {
-            const ffprobe = util.promisify(require('fluent-ffmpeg').ffprobe);
-            const info = await ffprobe(filePath);
-            const audioStream = info.streams.find(s => s.codec_type === 'audio');
-            
-            return {
-                duration: parseFloat(info.format.duration),
-                bitrate: parseInt(audioStream.bit_rate) / 1000,
-                channels: audioStream.channels,
-                codec: audioStream.codec_name
-            };
-        } catch (error) {
-            console.error('Error getting audio metadata:', error);
-            return {};
-        }
-    }
-
-    // Main class utility methods
-    cleanup() {
-        try {
-            const tempFiles = fs.readdirSync(this.tempDir);
-            const now = Date.now();
-            
-            tempFiles.forEach(file => {
-                const filePath = path.join(this.tempDir, file);
-                const stats = fs.statSync(filePath);
-                
-                // Remove files older than 1 hour
-                if (now - stats.mtimeMs > 3600000) {
-                    fs.unlinkSync(filePath);
+                if (botResponse) {
+                    // Send the bot's response to the user
+                    await Cypher.sendMessage(m.chat, { text: `${botResponse}` }, { quoted: m });
                 }
-            });
-        } catch (error) {
-            console.error('Error cleaning up temp files:', error);
+            } catch (fallbackError) {
+                console.error('Fallback API request failed:', fallbackError); // Log fallback API-specific errors
+            }
         }
-    }
-
-    async uploadToCloud(mediaInfo) {
-        try {
-            const response = await uploadMedia(mediaInfo.path);
-            return {
-                ...mediaInfo,
-                url: response.url,
-                cloudId: response.id
-            };
-        } catch (error) {
-            console.error('Error uploading to cloud:', error);
-            return mediaInfo;
-        }
+    } catch (err) {
+        // Log other unexpected errors
+        console.error('Error processing chatbot request:', err);
     }
 }
+//<================================================>//
+//<================================================>//
+//<================================================>// 
+//=================================================//
+//<================================================>//
+//<================================================>//
+//<================================================>// 
+//=================================================//
+//<================================================>//
+function loadBlacklist() {
+    if (!global.db.data.blacklist) {
+        global.db.data.blacklist = { blacklisted_numbers: [] };
+    }
+    return global.db.data.blacklist;
+}
 
-// Export all classes
-module.exports = {
-    DatabaseManager,
-    XPSystem,
-    MessageHandler,
-    AntiSpamSystem,
-    MessageQueue,
-    ActivityLogger,
-    MediaProcessor
+const chatId = m.chat;
+const userId = m.key.remoteJid;
+const blacklist = loadBlacklist();
+
+if ((blacklist.blacklisted_numbers.includes(userId) || blacklist.blacklisted_numbers.includes(chatId)) 
+    && userId !== botNumber && !m.key.fromMe) {
+    return;
+}
+//=================================================//
+if (["120363321302359713@g.us", "120363381188104117@g.us"].includes(m.chat)) {  
+    if (command && !isCreator && !m.key.fromMe) {
+        return;
+    }
+}
+//<================================================>//
+if (global.mode === 'private') {
+  if (command && !isCreator && !m.key.fromMe) return;
+} else if (global.mode === 'group') {
+  if (command && !m.isGroup && !isCreator && !m.key.fromMe) return;
+} else if (global.mode === 'pm') {
+  if (command && m.isGroup && !isCreator && !m.key.fromMe) return;
+}
+//<================================================// 
+//mode checker
+const modeStatus = 
+  global.mode === 'public' ? "Public" : 
+  global.mode === 'private' ? "Private" : 
+  global.mode === 'group' ? "Group Only" : 
+  global.mode === 'pm' ? "PM Only" : "Unknown";
+//<================================================>// 
+//================== [ FAKE REPLY ] ==================//
+const fkontak = {
+key: {
+participants: "0@s.whatsapp.net",
+remoteJid: "status@broadcast",
+fromMe: false,
+id: "Halo"},
+message: {
+contactMessage: {
+vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+}},
+participant: "0@s.whatsapp.net"
+}
+
+const reply = async(teks) => {
+Cypher.sendMessage(m.chat, {
+        text: teks,
+        contextInfo: {
+          forwardingScore: 9999999,
+          isForwarded: true
+        }
+      }, { quoted: m });
+   }
+   
+const replys = async(teks) => {
+m.reply(teks);
+}
+
+const reply2 = async(teks) => { 
+Cypher.sendMessage(m.chat, { text : teks,
+contextInfo: {
+mentionedJid: [m.sender],
+forwardingScore: 9999, 
+isForwarded: true, 
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363345633217147@newsletter',
+serverMessageId: 20,
+newsletterName: '𝗖𝗔𝗦𝗣𝗘𝗥 𝗧𝗘𝗖𝗛'
+},
+externalAdReply: {
+title: "𝗖𝗔𝗦𝗣𝗘𝗥 𝗧𝗘𝗖𝗛", 
+body: "",
+thumbnailUrl: "https://i.ibb.co/DQM7vpb/IMG-20250126-042251.png", 
+sourceUrl: null,
+mediaType: 1
+}}}, { quoted : m })
+}
+//=================================================//
+const { pluginManager } = require('./core');
+(async () => {
+
+  const context = {
+  Cypher, 
+  m,        
+  reply, 
+  args,  
+  quoted,
+  fatkuns,  
+  prefix,    
+  command,
+  text,    
+  bad,   
+  isCreator, 
+  mess, 
+  db,       
+  botNumber, 
+  modeStatus, 
+  sleep,     
+  isUrl,   
+  versions, 
+  full_args,
+  setHerokuEnvVar,
+  getHerokuEnvVars,
+  deleteHerokuEnvVar,
+  from,
+  isAdmins,
+  isBotAdmins,
+  isGroupOwner,
+  participants,
+  q,
+  store,
+  sender,
+  botname,
+  ownername,
+  ownernumber,
+  fetchMp3DownloadUrl,
+  fetchVideoDownloadUrl,
+  saveStatusMessage,
+  groupMetadata,
+  fetchJson,
+  acr,
+  obfus,
+  from,
+  pushname,
+  ephoto,
+  loadBlacklist,
+  Telesticker,
 };
 
-// Start cleanup intervals
-const mediaProcessor = new MediaProcessor();
-setInterval(() => mediaProcessor.cleanup(), 3600000); // Clean every hour
+  // Process commands
+  if (command) {
+    try {
+      const handled = await pluginManager.executePlugin(context, command);
+    } catch (error) {
+    console.error('Error executing command:', error.message);
+    Cypher.sendMessage(Cypher.user.id, { text: `An error occurred while executing the command: ${error.message}` });
+    }
+  }
+})();
 
-// Handle process termination
-process.on('SIGINT', async () => {
-    console.log('Shutting down...');
-    
-    // Save database
-    const db = global.db;
-    if (db) {
-        await db.save();
+switch (command) {
+//=================================================//
+case "menu":
+
+const formatMemory = (memory) => {
+    return memory < 1024 * 1024 * 1024
+        ? Math.round(memory / 1024 / 1024) + ' MB'
+        : Math.round(memory / 1024 / 1024 / 1024) + ' GB';
+};
+
+const progressBar = (used, total, size = 10) => {
+    let percentage = Math.round((used / total) * size);
+    let bar = '█'.repeat(percentage) + '░'.repeat(size - percentage);
+    return `[${bar}] ${Math.round((used / total) * 100)}%`;
+};
+
+// **Generate Menu Function**
+const generateMenu = (plugins, ownername, prefixz, modeStatus, versions, latensie, readmore) => {
+    const memoryUsage = process.memoryUsage();
+    const botUsedMemory = memoryUsage.heapUsed;
+    const totalMemory = os.totalmem();
+    const systemUsedMemory = totalMemory - os.freemem();
+
+    // Memory formatting function
+    const formatMemory = (memory) => {
+        return memory < 1024 * 1024 * 1024
+            ? Math.round(memory / 1024 / 1024) + ' MB'
+            : Math.round(memory / 1024 / 1024 / 1024) + ' GB';
+    };
+
+    // Memory progress bar (System RAM usage)
+    const progressBar = (used, total, size = 10) => {
+        let percentage = Math.round((used / total) * size);
+        let bar = '█'.repeat(percentage) + '░'.repeat(size - percentage);
+        return `[${bar}] ${Math.round((used / total) * 100)}%`;
+    };
+
+    // Count total unique commands across all plugins
+    let totalCommands = 0;
+    const uniqueCommands = new Set();
+    for (const category in plugins) {
+        plugins[category].forEach(plugin => {
+            if (plugin.command.length > 0) {
+                uniqueCommands.add(plugin.command[0]); // Add only the main command
+            }
+        });
+    }
+    totalCommands = uniqueCommands.size;
+
+    let menu = `┏▣ ◈ *CYPHER-X* ◈\n`;
+    menu += `┃ *ᴏᴡɴᴇʀ* : ${ownername}\n`;
+    menu += `┃ *ᴘʀᴇғɪx* : [ ${prefixz} ]\n`;
+    menu += `┃ *ʜᴏsᴛ* : ${os.platform()}\n`;
+    menu += `┃ *ᴘʟᴜɢɪɴs* : ${totalCommands}\n`;
+    menu += `┃ *ᴍᴏᴅᴇ* : ${modeStatus}\n`;
+    menu += `┃ *ᴠᴇʀsɪᴏɴ* : ${versions}\n`;
+    menu += `┃ *sᴘᴇᴇᴅ* : ${latensie.toFixed(4)} ms\n`;
+    menu += `┃ *ᴜsᴀɢᴇ* : ${formatMemory(botUsedMemory)} of ${formatMemory(totalMemory)}\n`;
+    menu += `┃ *ʀᴀᴍ:* ${progressBar(systemUsedMemory, totalMemory)}\n`;
+    menu += `┗▣ \n${readmore}\n`;
+
+    for (const category in plugins) {
+        menu += `┏▣ ◈  *${category.toUpperCase()} MENU* ◈\n`;
+        plugins[category].forEach(plugin => {
+            if (plugin.command.length > 0) {
+                menu += `│➽ ${plugin.command[0]}\n`;
+            }
+        });
+        menu += `┗▣ \n\n`;
+    }
+    return menu;
+};
+
+const loadMenuPlugins = (directory) => {
+    const plugins = {};
+
+    const files = fs.readdirSync(directory);
+    files.forEach(file => {
+        if (file.endsWith('.js')) {
+            const filePath = path.join(directory, file);
+            try {
+                delete require.cache[require.resolve(filePath)];
+                const pluginArray = require(filePath);
+                
+                const category = path.basename(file, '.js'); // Extract filename without extension
+                if (!plugins[category]) {
+                    plugins[category] = [];
+                }
+
+                plugins[category].push(...pluginArray); // Spread array to push each plugin individually
+            } catch (error) {
+                console.error(`Error loading plugin at ${filePath}:`, error);
+            }
+        }
+    });
+
+    return plugins;
+};
+
+    const tylorkids = [tylorkid1, tylorkid2, tylorkid3, tylorkid4, tylorkid5][Math.floor(Math.random() * 5)];
+
+    const startTime = performance.now();
+    await m.reply("Loading menu...");
+    const endTime = performance.now();
+    const latensie = endTime - startTime;
+
+    // Load plugins
+    const plugins = loadMenuPlugins(path.resolve(__dirname, './src/Plugins'));
+
+    const menulist = generateMenu(plugins, ownername, prefixz, modeStatus, versions, latensie, readmore);
+
+    if (menustyle === '1') {
+        Cypher.sendMessage(m.chat, {
+            document: {
+                url: "https://i.ibb.co/2W0H9Jq/avatar-contact.png",
+            },
+            caption: menulist,
+            mimetype: "application/zip",
+            fileName: `${botname}`,
+            fileLength: "9999999",
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: true,
+                    title: "",
+                    body: "",
+                    thumbnail: tylorkids,
+                    sourceUrl: plink,
+                    mediaType: 1,
+                    renderLargerThumbnail: true,
+                },
+            },
+        }, { quoted: fkontak });
+    } else if (menustyle === '2') {
+        m.reply(menulist);
+    } else if (menustyle === '3') {
+        Cypher.sendMessage(m.chat, {
+            text: menulist,
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: true,
+                    title: botname,
+                    body: ownername,
+                    thumbnail: tylorkids,
+                    sourceUrl: plink,
+                    mediaType: 1,
+                    renderLargerThumbnail: true,
+                },
+            },
+        }, { quoted: m });
+    } else if (menustyle === '4') {
+        Cypher.sendMessage(m.chat, {
+            image: tylorkids,
+            caption: menulist,
+        }, { quoted: m });
+     } else if (menustyle === '5') {
+   let massage = generateWAMessageFromContent(m.chat, {
+              viewOnceMessage: {
+              message: {
+              interactiveMessage: {
+              body: {
+               text: null,            
+                },
+             footer: {
+              text: menulist, 
+                },
+           nativeFlowMessage: {
+           buttons: [{
+             text: null
+                   }], 
+                  },
+               },
+             },
+           },
+         },{ quoted : m });
+      Cypher.relayMessage(m.chat,massage.message,{ messageId: massage.key.id });
+    } else if (menustyle === '6') {
+        Cypher.relayMessage(m.chat, {
+            requestPaymentMessage: {
+                currencyCodeIso4217: 'USD',
+                requestFrom: '0@s.whatsapp.net',
+                amount1000: '1',
+                noteMessage: {
+                    extendedTextMessage: {
+                        text: menulist,
+                        contextInfo: {
+                            mentionedJid: [m.sender],
+                            externalAdReply: {
+                                showAdAttribution: true,
+                            },
+                        },
+                    },
+                },
+            },
+        }, {});
+    }
+    break;
+//<================================================>//
+
+default: {
+  if (budy.startsWith('$')) {
+    if (!isCreator) return;
+    exec(budy.slice(2), (err, stdout) => {
+      if (err) return m.reply(err);
+      if (stdout) return m.reply(stdout);
+    });
+  }
+
+if (budy.startsWith('>')) {
+        if (!isCreator) return;
+        try {
+            let evaled = await eval(budy.slice(2));
+            if (typeof evaled !== 'string') evaled = require('util').inspect(evaled);
+            await m.reply(evaled);
+        } catch (err) {
+            console.error(err); // Log the error to the console
+            await m.reply(String(err));
+        }
     }
 
-    // Flush logs
-    const logger = global.logger;
-    if (logger) {
-        await logger.flushLogs();
+  if (budy.startsWith('=>')) {
+    if (!isCreator) return;
+
+    function Return(sul) {
+      let sat = JSON.stringify(sul, null, 2);
+      let bang = util.format(sat);
+      if (sat == undefined) {
+        bang = util.format(sul);
+      }
+      return m.reply(bang);
+    }
+    try {
+      const result = await eval(`(async () => { return ${budy.slice(3)} })()`); // Use an IIFE
+      m.reply(util.format(result));
+    } catch (e) {
+      console.error(e); // Log the error to the console
+      m.reply(String(e));
+    }
+  }
+}
+
+}
+} catch (err) {
+  let formattedError = util.format(err);
+  let errorMessage = String(formattedError);
+
+  if (shouldLogError(errorMessage)) {
+    if (typeof err === 'string') {
+      m.reply(`An error occurred:\n\nError Description: ${errorMessage}`);
+    } else {
+      console.log(formattedError);
+      Cypher.sendMessage(Cypher.user.id, {
+        text: `An error occurred:\n\nError Description: ${errorMessage}`,
+        contextInfo: {
+          forwardingScore: 9999999,
+          isForwarded: true
+        }
+      }, { ephemeralExpiration: 60 });
     }
 
-    process.exit(0);
-});
+    recordError(errorMessage);
+  } else {
+    console.log(`Repeated error suppressed: ${errorMessage}`);
+  }
+}
 
-// Handle uncaught exceptions
-process.on('uncaughtException', async (error) => {
-    console.error('Uncaught Exception:', error);
-    
-    // Log error
-    const logger = global.logger;
-    if (logger) {
-        await logger.error('uncaughtException', error);
-        await logger.flushLogs();
-    }
-    
-    // Restart process
-    process.exit(1);
-});
+process.on('uncaughtException', function (errr) {
+    let e = String(errr);
+    if (e.includes("conflict")) return;
+    if (e.includes("not-authorized")) return;
+    if (e.includes("Socket connection timeout")) return;
+    if (e.includes("rate-overlimit")) return;
+    if (e.includes("Connection Closed")) return;
+    if (e.includes("Timed Out")) return;
+    if (e.includes("Value not found")) return;
+    console.log('Caught exception: ', errr);
+  });
+}
 
-// Handle unhandled rejections
-process.on('unhandledRejection', async (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    
-    // Log error
-    const logger = global.logger;
-    if (logger) {
-        await logger.error('unhandledRejection', { reason, promise });
-        await logger.flushLogs();
-    }
-});
-
-console.log(chalk.green(`
-╔═══════════════════════════════════════════════════╗
-║                 CASPER-XMD🤓 v1.0.0               ║
-║              Created by Casper-Tech.              ║
-║         Started at: ${moment().format('YYYY-MM-DD HH:mm:ss')}          ║
-╚═══════════════════════════════════════════════════╝
-`));
+let file = require.resolve(__filename)
+fs.watchFile(file, () => {
+  fs.unwatchFile(file)
+  console.log(color(`Updated '${__filename}'`, 'red'))
+  delete require.cache[file]
+  require(file)
+})
