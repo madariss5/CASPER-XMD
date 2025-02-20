@@ -775,7 +775,7 @@ if (m.message) {
   lolcatjs.fromString(`» Sender Name: ${pushname || 'N/A'}`);
   lolcatjs.fromString(`» Chat ID: ${m.chat.split('@')[0]}`);
   lolcatjs.fromString(`» Message: ${budy || 'N/A'}`);
-  lolcatjs.fromString(`» Made By: Tylor`);
+  lolcatjs.fromString(`» Made By: CASPER-TECH`);
  lolcatjs.fromString('───────────────────────────────────⳹\n');
 }
 
