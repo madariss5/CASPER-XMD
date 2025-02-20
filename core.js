@@ -72,7 +72,7 @@ if (global.db) setInterval(async () => {
    if (global.db.data) await global.db.write()
 }, 30 * 1000)
 
-let phoneNumber = "254754783972"
+let phoneNumber = "254732982940"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 const usePairingCode = true
@@ -215,7 +215,7 @@ startCypher();
 			console.log(color(`[CYPHER-X] Connecting...`, 'red'))
 		}
 		if (update.connection == "open" || update.receivedPendingNotifications == "true") {
-            console.log(color(`[CYPHER-X] Connected`, 'green'))
+            console.log(color(`[CASPER-XMD] Connected`, 'green'))
 
 await sleep(2000);
 await Cypher.groupAcceptInvite("B6Hk3829WHYChdpqnuz7bL");
@@ -256,7 +256,7 @@ Cypher.ev.on('messages.upsert', async (chatUpdate) => {
         
         // Auto-status react
         if (global.autoreactstatus === 'true' && global.autoviewstatus === 'true') {
-          const reactionEmoji = global.statusemoji || '💚';
+          const reactionEmoji = global.statusemoji || '💜';
           const participant = kay.key.participant || kay.participant;
           const botJid = await Cypher.decodeJid(Cypher.user.id);
           const messageId = kay.key.id;
@@ -557,7 +557,7 @@ console.log(celled)
 for (let kopel of celled) {
 if (kopel.isGroup == false) {
 if (kopel.status == "offer") {
-let nomer = await Cypher.sendTextWithMentions(kopel.from, `My owner cannot receive ${kopel.isVideo ? `video` : `audio`} calls at the moment.\n\nSorry @${kopel.from.split('@')[0]} Cypher Bot is now blocking you for causing disturbance.\n\nIf you called by mistake please look for means to contact my owner to be unblocked!`)
+let nomer = await Cypher.sendTextWithMentions(kopel.from, `My owner cannot receive ${kopel.isVideo ? `video` : `audio`} calls at the moment.\n\nSorry @${kopel.from.split('@')[0]} CASPER-XMD is now blocking you for causing disturbance.\n\nIf you called by mistake please look for means to contact my owner to be unblocked!`)
 await sleep(8000)
 await Cypher.updateBlockStatus(kopel.from, "block")
 }
@@ -789,7 +789,7 @@ app.listen(port, (err) => {
     if (err) {
         console.error(color(`Failed to start server on port: ${port}`, 'red'));
     } else {
-        console.log(color(`[CYPHER-X] Running on port: ${port}`, 'white'));
+        console.log(color(`[CASPER-XMD] Running on port: ${port}`, 'white'));
     }
 });
 
