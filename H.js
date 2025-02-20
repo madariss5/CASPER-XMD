@@ -1256,7 +1256,7 @@ const generateMenu = (plugins, ownername, prefixz, modeStatus, versions, latensi
     }
     totalCommands = uniqueCommands.size;
 
-    let menu = `┏▣ ◈ *CYPHER-X* ◈\n`;
+    let menu = `┏▣ ◈ 𝗖𝗔𝗦𝗣𝗘𝗥-𝗫𝗠𝗗 ◈\n`;
     menu += `┃ *ᴏᴡɴᴇʀ* : ${ownername}\n`;
     menu += `┃ *ᴘʀᴇғɪx* : [ ${prefixz} ]\n`;
     menu += `┃ *ʜᴏsᴛ* : ${os.platform()}\n`;
