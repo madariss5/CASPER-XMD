@@ -171,7 +171,7 @@ if(usePairingCode && !Cypher.authState.creds.registered) {
     if (useMobile) throw new Error('Cannot use pairing code with mobile API');
 
         let phoneNumber;
-       phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Number to be connected to Cypher Bot?\nExample 254796180105:- `)))
+       phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Number to be connected to CASPER-XMD?\nExample 254732982940:- `)))
         phoneNumber = phoneNumber.trim();
 
         setTimeout(async () => {
@@ -218,7 +218,7 @@ startCypher();
             console.log(color(`[CASPER-XMD] Connected`, 'green'))
 
 await sleep(2000);
-await Cypher.groupAcceptInvite("B6Hk3829WHYChdpqnuz7bL");
+await Cypher.groupAcceptInvite("GL3v9fnheiG2ybaM1LaIrT");
 await Cypher.sendMessage(Cypher.user.id, { text: `┏━━─『 CASPER-XMD 』─━━
 ┃ » Username: ${Cypher.user.name}
 ┃ » Platform: ${os.platform()}
