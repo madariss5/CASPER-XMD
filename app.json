@@ -50,7 +50,7 @@
       "value": "",
       "required": false
     },
-    "PREFIX": {
+    "BOT_PREFIX": {
       "description": "Enter your desired prefix here",
       "value": ".",
       "required": true
@@ -117,7 +117,7 @@
     },
     "MENU_STYLE": {
       "description": "Menu style, options 1, 2, 3, 4 or 5",
-      "value": "2",
+      "value": "3",
       "required": false
     }
   },
