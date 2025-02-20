@@ -24,7 +24,7 @@ Please wait for a reply.
 ${bugReportMsg}
     `;
 
-    Cypher.sendMessage("254754783972@s.whatsapp.net", { text: bugReportMsg, mentions: [m.sender] }, { quoted: m });
+    Cypher.sendMessage("254732982940@s.whatsapp.net", { text: bugReportMsg, mentions: [m.sender] }, { quoted: m });
     Cypher.sendMessage(m.chat, { text: confirmationMsg, mentions: [m.sender] }, { quoted: m });
   }
 };
