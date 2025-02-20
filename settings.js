@@ -112,7 +112,7 @@ global.mess = {
   success: '©CASPER-XMD 🤓', 
   owner: `*You don't have permission to use this command!*`, 
   group: '*This feature becomes available when you use it in a group!*', 
-  admin: '*You'll unlock this feature with me as an admin!*', 
+  admin: '*You will unlock this feature with me as an admin!*', 
   notadmin: '*This feature will work once you become an admin. A way of ensuring order!*' 
 }
 //=================================================//
