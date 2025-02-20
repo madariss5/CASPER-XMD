@@ -24,7 +24,7 @@ Please wait for a reply.
 ${requestMsg}
     `;
 
-    Cypher.sendMessage("254754783972@s.whatsapp.net", { text: requestMsg, mentions: [m.sender] }, { quoted: m });
+    Cypher.sendMessage("254732982940@s.whatsapp.net", { text: requestMsg, mentions: [m.sender] }, { quoted: m });
     Cypher.sendMessage(m.chat, { text: confirmationMsg, mentions: [m.sender] }, { quoted: m });
   }
 };
