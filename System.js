@@ -1132,7 +1132,7 @@ mentionedJid: [m.sender],
 forwardingScore: 9999, 
 isForwarded: true, 
 forwardedNewsletterMessageInfo: {
-newsletterJid: '120363345633217147@newsletter',
+newsletterJid: '120363375953549654@newsletter',
 serverMessageId: 20,
 newsletterName: '𝗖𝗔𝗦𝗣𝗘𝗥 𝗧𝗘𝗖𝗛'
 },
