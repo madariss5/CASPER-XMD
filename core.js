@@ -212,7 +212,7 @@ startCypher();
 }
 
 		if (update.connection == "connecting" || update.receivedPendingNotifications == "false") {
-			console.log(color(`[CYPHER-X] Connecting...`, 'red'))
+			console.log(color(`[CASPER-XMD] Connecting...`, 'red'))
 		}
 		if (update.connection == "open" || update.receivedPendingNotifications == "true") {
             console.log(color(`[CASPER-XMD] Connected`, 'green'))
@@ -295,7 +295,7 @@ if (processedMessages.has(messageId)) continue;
 processedMessages.add(messageId);
       
       const m = smsg(Cypher, kay, store);
-      require('./Xploader')(Cypher, m, chatUpdate, store);
+      require('./System')(Cypher, m, chatUpdate, store);
     }
   } catch (err) {
     console.error('Error handling messages.upsert:', err);
