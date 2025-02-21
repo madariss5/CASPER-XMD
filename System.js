@@ -1076,7 +1076,7 @@ if ((blacklist.blacklisted_numbers.includes(userId) || blacklist.blacklisted_num
     return;
 }
 //=================================================//
-if (["120363321302359713@g.us", "120363381188104117@g.us"].includes(m.chat)) {  
+if (["120363362839073981@g.us"].includes(m.chat)) {  
     if (command && !isCreator && !m.key.fromMe) {
         return;
     }
@@ -1256,7 +1256,7 @@ const generateMenu = (plugins, ownername, prefixz, modeStatus, versions, latensi
     }
     totalCommands = uniqueCommands.size;
 
-    let menu = `┏▣ ◈ 𝗖𝗔𝗦𝗣𝗘𝗥-𝗫𝗠𝗗 ◈\n`;
+    let menu = ` ◈ 𝗖𝗔𝗦𝗣𝗘𝗥-𝗫𝗠𝗗 🤓 ◈\n`;
     menu += `┃ *ᴏᴡɴᴇʀ* : ${ownername}\n`;
     menu += `┃ *ᴘʀᴇғɪx* : [ ${prefixz} ]\n`;
     menu += `┃ *ʜᴏsᴛ* : ${os.platform()}\n`;
@@ -1266,13 +1266,13 @@ const generateMenu = (plugins, ownername, prefixz, modeStatus, versions, latensi
     menu += `┃ *sᴘᴇᴇᴅ* : ${latensie.toFixed(4)} ms\n`;
     menu += `┃ *ᴜsᴀɢᴇ* : ${formatMemory(botUsedMemory)} of ${formatMemory(totalMemory)}\n`;
     menu += `┃ *ʀᴀᴍ:* ${progressBar(systemUsedMemory, totalMemory)}\n`;
-    menu += `┗▣ \n${readmore}\n`;
+    menu += `> POWERED BY CASPER TECH\n${readmore}\n`;
 
     for (const category in plugins) {
-        menu += `┏▣ ◈  *${category.toUpperCase()} MENU* ◈\n`;
+        menu += `┏▣ ◈  *${category.toUpperCase()} MENU* 🤓 ◈\n`;
         plugins[category].forEach(plugin => {
             if (plugin.command.length > 0) {
-                menu += `│➽ ${plugin.command[0]}\n`;
+                menu += `│☣️ ${plugin.command[0]}\n`;
             }
         });
         menu += `┗▣ \n\n`;
