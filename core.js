@@ -43,7 +43,7 @@ const { Low, JSONFile } = low;
 const port = process.env.PORT || 3000;
 const versions = require("./package.json").version
 const modeStatus = global.mode === 'public' ? "Public" : "Private";
-const PluginManager = require('./PluginManager');
+const PluginManager = require('./lib/PluginManager');
 
 // Initialize PluginManager with the Plugins directory
 const pluginManager = new PluginManager(path.resolve(__dirname, './src/Plugins'));
