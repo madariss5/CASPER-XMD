@@ -1269,13 +1269,13 @@ const generateMenu = (plugins, ownername, prefixz, modeStatus, versions, latensi
     menu += `> POWERED BY CASPER TECH\n${readmore}\n`;
 
     for (const category in plugins) {
-        menu += `┏▣ ◈  *${category.toUpperCase()} MENU* 🤓 ◈\n`;
+        menu += ` ◈  *${category.toUpperCase()} MENU* 🤓 ◈\n`;
         plugins[category].forEach(plugin => {
             if (plugin.command.length > 0) {
                 menu += `│☣️ ${plugin.command[0]}\n`;
             }
         });
-        menu += `┗▣ \n\n`;
+        menu += `> POWERED BY CASPER TECH ▣ \n\n`;
     }
     return menu;
 };
