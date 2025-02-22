@@ -25,7 +25,7 @@ createTmpFolder();
 
 function logMessage(message) {
   const timestamp = moment().tz(TIMEZONE).format('HH:mm z');
-  console.log(`[CYPHER-X] ${message}`);
+  console.log(`[CASPER-XMD] ${message}`);
   fs.appendFileSync(path.join(__dirname, 'tmp', getLogFileName()), `[${timestamp}] ${message}\n`);
 }
 
@@ -76,7 +76,7 @@ function start() {
   });
 
   const handleShutdown = (signal) => {
-    logMessage(`Shutting down CypherX due to ${signal}...`);
+    logMessage(`Shutting down CASPER-XMD due to ${signal}...`);
     p.kill();
     errorLogStream.end();
     process.exit(0);
